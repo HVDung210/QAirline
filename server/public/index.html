@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QAirline API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .response {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .success {
+            color: #28a745;
+        }
+        .status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .server-info {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>QAirline API Test Interface</h1>
+    
+    <div class="server-info">
+        <h3>Server Information</h3>
+        <p>Base URL: <span id="baseUrl">http://localhost:3000/api</span></p>
+        <button onclick="updateBaseUrl()">Update Base URL</button>
+    </div>
+
+    <div class="card">
+        <h2>API Status</h2>
+        <button onclick="checkApiStatus()">Check API Status</button>
+        <div id="apiStatus" class="status"></div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Users</h2>
+            <button onclick="getAllUsers()">Get All Users</button>
+            <div id="usersStatus" class="status"></div>
+            <div id="usersResponse" class="response"></div>
+        </div>
+
+        <div class="card">
+            <h2>Flights</h2>
+            <button onclick="getAllFlights()">Get All Flights</button>
+            <div id="flightsStatus" class="status"></div>
+            <div id="flightsResponse" class="response"></div>
+        </div>
+
+        <div class="card">
+            <h2>Bookings</h2>
+            <button onclick="getAllBookings()">Get All Bookings</button>
+            <div id="bookingsStatus" class="status"></div>
+            <div id="bookingsResponse" class="response"></div>
+        </div>
+
+        <div class="card">
+            <h2>Airlines</h2>
+            <button onclick="getAllAirlines()">Get All Airlines</button>
+            <div id="airlinesStatus" class="status"></div>
+            <div id="airlinesResponse" class="response"></div>
+        </div>
+    </div>
+
+    <script>
+        let API_BASE_URL = 'http://localhost:3000/api';
+        let isApiAvailable = false;
+
+        function updateBaseUrl() {
+            const newUrl = prompt('Enter new base URL:', API_BASE_URL);
+            if (newUrl) {
+                API_BASE_URL = newUrl;
+                document.getElementById('baseUrl').textContent = newUrl;
+                checkApiStatus();
+            }
+        }
+
+        async function checkApiStatus() {
+            const statusElement = document.getElementById('apiStatus');
+            try {
+                const response = await fetch(`${API_BASE_URL}/flights`);
+                if (response.ok) {
+                    statusElement.textContent = 'API is available';
+                    statusElement.className = 'status success';
+                    isApiAvailable = true;
+                } else {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+            } catch (error) {
+                statusElement.textContent = `API is not available: ${error.message}`;
+                statusElement.className = 'status error';
+                isApiAvailable = false;
+            }
+        }
+
+        function updateStatus(elementId, success, message) {
+            const statusElement = document.getElementById(elementId);
+            statusElement.textContent = message;
+            statusElement.className = `status ${success ? 'success' : 'error'}`;
+        }
+
+        async function getAllUsers() {
+            const responseElement = document.getElementById('usersResponse');
+            try {
+                console.log('Fetching customers from:', `${API_BASE_URL}/customers`);
+                const response = await fetch(`${API_BASE_URL}/customers`);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => null);
+                    console.error('Customers API Error:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        errorData
+                    });
+                    throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('Customers API Response:', data);
+                responseElement.textContent = JSON.stringify(data, null, 2);
+                updateStatus('usersStatus', true, 'Success');
+            } catch (error) {
+                console.error('Customers API Error:', error);
+                responseElement.textContent = `Error: ${error.message}`;
+                updateStatus('usersStatus', false, 'Failed');
+            }
+        }
+
+        async function getAllFlights() {
+            const responseElement = document.getElementById('flightsResponse');
+            try {
+                console.log('Fetching flights from:', `${API_BASE_URL}/flights`);
+                const response = await fetch(`${API_BASE_URL}/flights`);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => null);
+                    console.error('Flights API Error:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        errorData
+                    });
+                    throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('Flights API Response:', data);
+                responseElement.textContent = JSON.stringify(data, null, 2);
+                updateStatus('flightsStatus', true, 'Success');
+            } catch (error) {
+                console.error('Flights API Error:', error);
+                responseElement.textContent = `Error: ${error.message}`;
+                updateStatus('flightsStatus', false, 'Failed');
+            }
+        }
+
+        async function getAllBookings() {
+            const responseElement = document.getElementById('bookingsResponse');
+            try {
+                console.log('Fetching bookings from:', `${API_BASE_URL}/bookings`);
+                const response = await fetch(`${API_BASE_URL}/bookings`);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => null);
+                    console.error('Bookings API Error:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        errorData
+                    });
+                    throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('Bookings API Response:', data);
+                responseElement.textContent = JSON.stringify(data, null, 2);
+                updateStatus('bookingsStatus', true, 'Success');
+            } catch (error) {
+                console.error('Bookings API Error:', error);
+                responseElement.textContent = `Error: ${error.message}`;
+                updateStatus('bookingsStatus', false, 'Failed');
+            }
+        }
+
+        async function getAllAirlines() {
+            const responseElement = document.getElementById('airlinesResponse');
+            try {
+                console.log('Fetching airplanes from:', `${API_BASE_URL}/airplanes`);
+                const response = await fetch(`${API_BASE_URL}/airplanes`);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => null);
+                    console.error('Airplanes API Error:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        errorData
+                    });
+                    throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('Airplanes API Response:', data);
+                responseElement.textContent = JSON.stringify(data, null, 2);
+                updateStatus('airlinesStatus', true, 'Success');
+            } catch (error) {
+                console.error('Airplanes API Error:', error);
+                responseElement.textContent = `Error: ${error.message}`;
+                updateStatus('airlinesStatus', false, 'Failed');
+            }
+        }
+
+        // Check API status when page loads
+        window.onload = checkApiStatus;
+    </script>
+</body>
+</html>
+
