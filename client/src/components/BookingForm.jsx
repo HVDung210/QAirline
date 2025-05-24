@@ -212,9 +212,8 @@ const BookingForm = () => {
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-blue-300'
                     }`}
-                  >
-                    <p className="font-medium">{seat.seat_number}</p>
-                    <p className="text-sm text-gray-600">{seat.seat_type}</p>
+                  >                    <p className="font-medium">{seat.seat_type}</p>
+                    <p className="text-sm text-gray-600">Seat #{seat.id}</p>
                     <p className="text-sm font-medium text-blue-600">
                       {seat.price.toLocaleString('vi-VN')} VNĐ
                     </p>

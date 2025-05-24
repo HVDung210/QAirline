@@ -388,350 +388,74 @@ module.exports = {
         bl124: bl124Flight,
         vn456: vn456Flight,
         vn457: vn457Flight
-      });
-
-      // Create Seats
+      });      // Create Seats
       console.log('Creating Seats...');
-      const seats = await queryInterface.bulkInsert('Seats', [
-        // Economy Class Seats for Flight 1 (VN123)
-        {
-          flight_id: vn123Flight.id,
-          seat_type: 'Economy',
-          price: 1500000,
-          seat_number: 'A1',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: vn123Flight.id,
-          seat_type: 'Economy',
-          price: 1500000,
-          seat_number: 'A2',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: vn123Flight.id,
-          seat_type: 'Economy',
-          price: 1500000,
-          seat_number: 'A3',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        // Business Class Seats for Flight 1
-        {
-          flight_id: vn123Flight.id,
-          seat_type: 'Business',
-          price: 3000000,
-          seat_number: 'B1',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: vn123Flight.id,
-          seat_type: 'Business',
-          price: 3000000,
-          seat_number: 'B2',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        // First Class Seats for Flight 1
-        {
-          flight_id: vn123Flight.id,
-          seat_type: 'First',
-          price: 5000000,
-          seat_number: 'C1',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        // Economy Class Seats for Flight 2 (VN124)
-        {
-          flight_id: vn124Flight.id,
-          seat_type: 'Economy',
-          price: 1200000,
-          seat_number: 'A1',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: vn124Flight.id,
-          seat_type: 'Economy',
-          price: 1200000,
-          seat_number: 'A2',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: vn124Flight.id,
-          seat_type: 'Economy',
-          price: 1200000,
-          seat_number: 'A3',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        // Business Class Seats for Flight 2
-        {
-          flight_id: vn124Flight.id,
-          seat_type: 'Business',
-          price: 2500000,
-          seat_number: 'B1',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: vn124Flight.id,
-          seat_type: 'Business',
-          price: 2500000,
-          seat_number: 'B2',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        // First Class Seats for Flight 2
-        {
-          flight_id: vn124Flight.id,
-          seat_type: 'First',
-          price: 4500000,
-          seat_number: 'C1',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        // Economy Class Seats for Flight 3 (QH456)
-        {
-          flight_id: qh456Flight.id,
-          seat_type: 'Economy',
-          price: 800000,
-          seat_number: 'A1',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: qh456Flight.id,
-          seat_type: 'Economy',
-          price: 800000,
-          seat_number: 'A2',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: qh456Flight.id,
-          seat_type: 'Economy',
-          price: 800000,
-          seat_number: 'A3',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        // Economy Class Seats for Flight 4 (QH457)
-        {
-          flight_id: qh457Flight.id,
-          seat_type: 'Economy',
-          price: 900000,
-          seat_number: 'A1',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: qh457Flight.id,
-          seat_type: 'Economy',
-          price: 900000,
-          seat_number: 'A2',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: qh457Flight.id,
-          seat_type: 'Economy',
-          price: 900000,
-          seat_number: 'A3',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        // Economy Class Seats for Flight 5 (VJ789)
-        {
-          flight_id: vj789Flight.id,
-          seat_type: 'Economy',
-          price: 700000,
-          seat_number: 'A1',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: vj789Flight.id,
-          seat_type: 'Economy',
-          price: 700000,
-          seat_number: 'A2',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: vj789Flight.id,
-          seat_type: 'Economy',
-          price: 700000,
-          seat_number: 'A3',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        // Economy Class Seats for Flight 6 (VJ790)
-        {
-          flight_id: vj790Flight.id,
-          seat_type: 'Economy',
-          price: 750000,
-          seat_number: 'A1',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: vj790Flight.id,
-          seat_type: 'Economy',
-          price: 750000,
-          seat_number: 'A2',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: vj790Flight.id,
-          seat_type: 'Economy',
-          price: 750000,
-          seat_number: 'A3',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        // Economy Class Seats for Flight 7 (BL123)
-        {
-          flight_id: bl123Flight.id,
-          seat_type: 'Economy',
-          price: 1100000,
-          seat_number: 'A1',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: bl123Flight.id,
-          seat_type: 'Economy',
-          price: 1100000,
-          seat_number: 'A2',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: bl123Flight.id,
-          seat_type: 'Economy',
-          price: 1100000,
-          seat_number: 'A3',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        // Economy Class Seats for Flight 8 (BL124)
-        {
-          flight_id: bl124Flight.id,
-          seat_type: 'Economy',
-          price: 1150000,
-          seat_number: 'A1',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: bl124Flight.id,
-          seat_type: 'Economy',
-          price: 1150000,
-          seat_number: 'A2',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: bl124Flight.id,
-          seat_type: 'Economy',
-          price: 1150000,
-          seat_number: 'A3',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        // Economy Class Seats for Flight 9 (VN456)
-        {
-          flight_id: vn456Flight.id,
-          seat_type: 'Economy',
-          price: 2500000,
-          seat_number: 'A1',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: vn456Flight.id,
-          seat_type: 'Economy',
-          price: 2500000,
-          seat_number: 'A2',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: vn456Flight.id,
-          seat_type: 'Economy',
-          price: 2500000,
-          seat_number: 'A3',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        // Economy Class Seats for Flight 10 (VN457)
-        {
-          flight_id: vn457Flight.id,
-          seat_type: 'Economy',
-          price: 2600000,
-          seat_number: 'A1',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: vn457Flight.id,
-          seat_type: 'Economy',
-          price: 2600000,
-          seat_number: 'A2',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          flight_id: vn457Flight.id,
-          seat_type: 'Economy',
-          price: 2600000,
-          seat_number: 'A3',
-          is_available: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+        // Function to create seats for a flight
+      const createSeatsForFlight = (flightId) => {
+        const seats = [];
+        let seatCounter = 1;
+        
+        // Economy Class - 50% of total seats (rows 20-40)
+        for (let row = 20; row <= 40; row++) {
+          for (let col of ['A', 'B', 'C', 'D', 'E', 'F']) {
+            seats.push({
+              flight_id: flightId,
+              seat_type: 'Economy',
+              price: 1500000,
+              is_available: true,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            });
+            seatCounter++;
+          }
         }
-      ], { returning: true });
+        
+        // Business Class - 30% of total seats (rows 10-19)
+        for (let row = 10; row <= 19; row++) {
+          for (let col of ['A', 'C', 'D', 'F']) {  // Wider seats, skip B and E
+            seats.push({
+              flight_id: flightId,
+              seat_type: 'Business',
+              price: 3000000,
+              is_available: true,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            });
+            seatCounter++;
+          }
+        }
+        
+        // First Class - 20% of total seats (rows 1-9)
+        for (let row = 1; row <= 9; row++) {
+          for (let col of ['A', 'F']) {  // Only window seats for First Class
+            seats.push({
+              flight_id: flightId,
+              seat_type: 'First',
+              price: 5000000,
+              is_available: true,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            });
+            seatCounter++;
+          }
+        }
+        return seats;
+      };
+
+      // Create seats for all flights
+      const allFlightIds = [
+        vn123Flight.id, vn124Flight.id,
+        qh456Flight.id, qh457Flight.id,
+        vj789Flight.id, vj790Flight.id,
+        bl123Flight.id, bl124Flight.id,
+        vn456Flight.id, vn457Flight.id
+      ];
+
+      for (const flightId of allFlightIds) {
+        const seats = createSeatsForFlight(flightId);
+        await queryInterface.bulkInsert('Seats', seats);
+      }
+
       console.log('Seats created successfully');
 
       // Verify seats were created

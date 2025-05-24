@@ -24,10 +24,9 @@ const Seat = sequelize.define('Seat', {
   price: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false
-  },
-  seat_number: {
+  },  seat_number: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true
   },
   is_available: {
     type: DataTypes.BOOLEAN,

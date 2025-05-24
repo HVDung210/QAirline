@@ -25,10 +25,9 @@ module.exports = {
       price: {
         type: Sequelize.DECIMAL(10, 2),
         allowNull: false
-      },
-      seat_number: {
+      },      seat_number: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: true
       },
       is_available: {
         type: Sequelize.BOOLEAN,

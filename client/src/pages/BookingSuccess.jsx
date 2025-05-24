@@ -107,9 +107,8 @@ const BookingSuccess = () => {
                   {formatDateTime(booking.createdAt)}
                 </p>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">Mã ghế</p>
-                <p className="font-medium">#{booking.seat_id || 'N/A'}</p>
+              <div>                <p className="text-sm text-gray-600">Hạng ghế</p>
+                <p className="font-medium">{booking.class || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Số hành khách</p>

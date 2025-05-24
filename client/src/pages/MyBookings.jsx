@@ -395,10 +395,9 @@ const MyBookings = () => {
                         </div>
                       </div>
 
-                      <div>
-                        <p className="text-gray-600">Số ghế</p>
-                        <p className="font-medium">{booking.Seat?.seat_number || 'N/A'}</p>
-                      </div>
+                      <div>                        <p className="text-gray-600">Hạng ghế</p>
+                        <p className="font-medium">{booking.Seat?.seat_type || 'N/A'}</p>
+                      </div>  
 
                       <div>
                         <p className="text-gray-600">Trạng thái</p>

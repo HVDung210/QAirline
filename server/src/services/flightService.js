@@ -25,10 +25,9 @@ class FlightService {
 
     const flights = await Flight.findAll({
       where,
-      include: [{
-        model: Seat,
+      include: [{        model: Seat,
         where: {
-          class: flightClass,
+          seat_type: flightClass,
           is_available: true
         },
         required: true
