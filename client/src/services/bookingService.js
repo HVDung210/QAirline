@@ -1,4 +1,5 @@
 import api from './api';
+import axios from 'axios';
 
 let bookingsCache = {
   data: null,
@@ -51,6 +52,15 @@ const validateBooking = (booking) => {
   return true;
 };
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  };
+};
+
 export const getMyBookings = async (forceRefresh = false) => {
   console.log('[bookingService] getMyBookings called with forceRefresh:', forceRefresh);
   const now = Date.now();
@@ -73,7 +83,8 @@ export const getMyBookings = async (forceRefresh = false) => {
 
   try {
     console.log('[bookingService] Fetching new bookings data');
-    bookingsCache.promise = api.get('/bookings/my-bookings');
+    const headers = getAuthHeaders();
+    bookingsCache.promise = api.get('/bookings/my-bookings', headers);
     const response = await bookingsCache.promise;
     
     console.log('[bookingService] Raw response:', response.data);
@@ -112,7 +123,14 @@ export const getMyBookings = async (forceRefresh = false) => {
 export const createBooking = async (bookingData) => {
   try {
     console.log('[bookingService] Creating booking:', bookingData);
-    const response = await api.post('/bookings', bookingData);
+    
+    // Thêm headers xác thực
+    const headers = getAuthHeaders();
+    if (!headers.headers.Authorization) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await api.post('/bookings', bookingData, headers);
     clearBookingsCache();
     
     console.log('[bookingService] Booking created:', response.data);
@@ -120,28 +138,57 @@ export const createBooking = async (bookingData) => {
     if (response.data?.status === 'success') {
       return response.data;
     }
+    
+    // Kiểm tra các trường hợp lỗi cụ thể
+    if (response.data?.message === 'Please authenticate.') {
+      throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+    }
+    
     throw new Error('Failed to create booking');
   } catch (error) {
     console.error('[bookingService] Error creating booking:', error);
+    
+    // Xử lý lỗi 401 Unauthorized
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+    }
+    
     throw error.response?.data?.message
       ? new Error(error.response.data.message)
       : error;
   }
 };
 
-export const cancelBooking = async (id) => {
+export const cancelBooking = async (bookingId) => {
   try {
-    console.log('[bookingService] Cancelling booking:', id);
-    const response = await api.patch(`/bookings/${id}/cancel`);
-    
-    if (response.status === 200 && response.data?.status === 'success') {
-      clearBookingsCache();
-      console.log('[bookingService] Booking cancelled successfully:', id);
-      return response.data;
-    }
-    throw new Error(response.data?.message || 'Không thể hủy đặt vé');
+    console.log('[bookingService] Cancelling booking:', bookingId);
+    const headers = getAuthHeaders();
+    const response = await api.patch(`/bookings/${bookingId}/cancel`, {}, headers);
+    console.log('[bookingService] Booking cancelled:', response.data);
+    clearBookingsCache(); // Clear cache after successful cancellation
+    return response.data;
   } catch (error) {
-    console.error('[bookingService] Error cancelling booking:', error);
-    throw new Error(error.response?.data?.message || 'Không thể hủy đặt vé');
+    console.error('[bookingService] Error cancelling booking:', {
+      bookingId,
+      error: error.response?.data?.message || error.message,
+      status: error.response?.status,
+      data: error.response?.data
+    });
+    
+    // Kiểm tra loại lỗi
+    if (error.code === 'ERR_NETWORK') {
+      throw new Error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.');
+    }
+    
+    if (error.response) {
+      // Lỗi từ server
+      const message = error.response.data?.message || 'Không thể hủy đặt vé';
+      throw new Error(message);
+    }
+    
+    // Lỗi khác
+    throw new Error('Đã xảy ra lỗi khi hủy đặt vé. Vui lòng thử lại sau.');
   }
 };

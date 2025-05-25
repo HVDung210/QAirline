@@ -74,6 +74,11 @@ module.exports = {
         type: Sequelize.ENUM('Credit Card', 'Debit Card', 'Bank Transfer', 'PayPal', 'Cash'),
         allowNull: false
       },
+      booking_reference: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false

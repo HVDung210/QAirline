@@ -8,63 +8,75 @@ exports.createBooking = async (req, res) => {
     const { flight_id, seat_id, passengers, class: seatClass } = req.body;
     
     if (!flight_id || !seat_id) {
+      await t.rollback();
       return res.status(400).json({
         status: 'error',
         message: 'Missing required fields'
       });
     }
 
-    // Kiểm tra ghế có available không
-    const seat = await Seat.findOne({
-      where: { 
-        id: seat_id,
+    // Lấy danh sách ghế trống cùng loại
+    const availableSeats = await Seat.findAll({
+      where: {
         flight_id,
-        is_available: true 
+        seat_type: seatClass,
+        is_available: true
       },
+      limit: passengers,
+      lock: true,
       transaction: t
     });
 
-    if (!seat) {
+    if (availableSeats.length < passengers) {
       await t.rollback();
       return res.status(400).json({
         status: 'error',
-        message: 'Seat is no longer available'
+        message: `Chỉ còn ${availableSeats.length} ghế trống cho hạng ${seatClass}`
       });
     }
 
-    // Tạo booking
-    const booking = await Booking.create({
-      user_id: req.user.id,
-      flight_id,
-      seat_id,
-      passengers,
-      class: seatClass,
-      total_price: seat.price * passengers,
-      status: 'Confirmed'
-    }, { transaction: t });
+    // Tạo nhiều booking cho mỗi hành khách
+    const bookings = [];
+    for (const seat of availableSeats) {
+      const booking = await Booking.create({
+        customer_id: req.user.id,
+        flight_id,
+        seat_id: seat.id,
+        passengers: 1,
+        class: seatClass,
+        total_price: seat.price,
+        status: 'Confirmed',
+        payment_status: 'Paid',
+        payment_method: req.body.payment_method || 'Cash',
+        booking_reference: `BK${Date.now()}${Math.floor(Math.random() * 1000)}` // Tạo mã vé duy nhất
+      }, { transaction: t });
 
-    // Cập nhật trạng thái ghế
-    await seat.update({ is_available: false }, { transaction: t });
+      // Cập nhật trạng thái ghế
+      await seat.update({ is_available: false }, { transaction: t });
+
+      // Load thông tin đầy đủ cho booking
+      const fullBooking = await Booking.findOne({
+        where: { id: booking.id },
+        include: [{
+          model: Flight,
+          include: [{
+            model: Airplane,
+            include: [Airline]
+          }]
+        }, {
+          model: Seat
+        }],
+        transaction: t
+      });
+
+      bookings.push(fullBooking);
+    }
 
     await t.commit();
 
-    // Load booking với đầy đủ thông tin
-    const fullBooking = await Booking.findOne({
-      where: { id: booking.id },
-      include: [{
-        model: Flight,
-        include: [{
-          model: Airplane,
-          include: [Airline]
-        }]
-      }, {
-        model: Seat
-      }]
-    });
-
     return res.status(201).json({
       status: 'success',
-      data: fullBooking
+      data: bookings
     });
 
   } catch (error) {
@@ -72,7 +84,7 @@ exports.createBooking = async (req, res) => {
     console.error('Booking error:', error);
     return res.status(500).json({
       status: 'error',
-      message: 'Could not create booking'
+      message: 'Không thể tạo booking'
     });
   }
 };

@@ -10,6 +10,11 @@ const Booking = sequelize.define('Booking', {
     primaryKey: true,
     autoIncrement: true
   },
+  booking_reference: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
+  },
   customer_id: {
     type: DataTypes.INTEGER,
     allowNull: true,
@@ -20,7 +25,7 @@ const Booking = sequelize.define('Booking', {
   },
   flight_id: {
     type: DataTypes.INTEGER,
-    allowNull: true,
+    allowNull: false,
     references: {
       model: Flight,
       key: 'id'
@@ -28,19 +33,11 @@ const Booking = sequelize.define('Booking', {
   },
   seat_id: {
     type: DataTypes.INTEGER,
-    allowNull: true,
+    allowNull: false,
     references: {
       model: Seat,
       key: 'id'
     }
-  },
-  departure_time: {
-    type: DataTypes.DATE,
-    allowNull: true
-  },
-  return_time: {
-    type: DataTypes.DATE,
-    allowNull: true
   },
   booking_date: {
     type: DataTypes.DATE,
@@ -58,7 +55,7 @@ const Booking = sequelize.define('Booking', {
     defaultValue: 1
   },
   class: {
-    type: DataTypes.ENUM('Economy', 'Premium'),
+    type: DataTypes.ENUM('Economy', 'Business', 'First'),
     allowNull: false,
     defaultValue: 'Economy'
   },
@@ -73,7 +70,8 @@ const Booking = sequelize.define('Booking', {
   },
   payment_method: {
     type: DataTypes.ENUM('Credit Card', 'Debit Card', 'Bank Transfer', 'PayPal', 'Cash'),
-    allowNull: false
+    allowNull: false,
+    defaultValue: 'Cash'
   }
 });
 

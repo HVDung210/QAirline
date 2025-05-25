@@ -1,8 +1,31 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { format } from 'date-fns';
 import * as bookingService from '../services/bookingService';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { getCityName } from '../data/cityMapping';
+
+const formatDateTime = (dateString) => {
+  try {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'N/A';
+    return format(date, 'dd/MM/yyyy HH:mm');
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'N/A';
+  }
+};
+
+const formatPrice = (price) => {
+  try {
+    const numPrice = Number(price);
+    return isNaN(numPrice) ? '0' : numPrice.toLocaleString('vi-VN');
+  } catch (error) {
+    console.error('Error formatting price:', error);
+    return '0';
+  }
+};
 
 const MyBookings = () => {
   console.log('[MyBookings] Component rendering', {
@@ -197,23 +220,103 @@ const MyBookings = () => {
     });
 
     try {
-      const now = new Date();
-      const departure = new Date(departureTime);
-      const hoursUntilDeparture = (departure - now) / (1000 * 60 * 60);
+      // Tìm booking trong danh sách đã xử lý
+      const processedBookings = groupReturnFlights(bookings);
+      const booking = processedBookings.find(b => b.id === bookingId);
       
-      console.log('[MyBookings] Checking cancellation timeframe:', {
-        hoursUntilDeparture,
-        now: now.toISOString(),
-        departure: departure.toISOString()
-      });
+      if (!booking) {
+        console.error('[MyBookings] Booking not found:', {
+          bookingId,
+          availableIds: processedBookings.map(b => ({
+            id: b.id,
+            original_id: b.original_id,
+            return_original_id: b.return_original_id,
+            is_round_trip: b.is_round_trip,
+            ticket_number: b.ticket_number
+          })),
+          timestamp: new Date().toISOString()
+        });
+        throw new Error('Không tìm thấy thông tin đặt vé');
+      }
 
-      if (hoursUntilDeparture < 24) {
-        throw new Error('Không thể hủy vé trong vòng 24 giờ trước giờ khởi hành');
-      }      await bookingService.cancelBooking(bookingId);
-      console.log('[MyBookings] Booking cancelled successfully:', {
+      const now = new Date();
+      const bookingCreationTime = new Date(booking.createdAt);
+      const hoursSinceCreation = (now - bookingCreationTime) / (1000 * 60 * 60);
+
+      console.log('[MyBookings] Checking booking details:', {
         bookingId,
+        originalId: booking.original_id,
+        returnOriginalId: booking.return_original_id,
+        isRoundTrip: booking.is_round_trip,
+        hoursSinceCreation,
+        bookingCreationTime: bookingCreationTime.toISOString(),
+        now: now.toISOString(),
+        status: booking.status,
+        ticketNumber: booking.ticket_number,
         timestamp: new Date().toISOString()
       });
+
+      if (hoursSinceCreation > 24) {
+        throw new Error('Không thể hủy vé sau 24 giờ kể từ khi đặt');
+      }
+
+      // Hiển thị thông báo xác nhận
+      if (!window.confirm('Bạn có chắc chắn muốn hủy đặt vé này?')) {
+        return;
+      }
+
+      setLoading(true);
+
+      // Nếu là vé khứ hồi, hủy cả 2 vé
+      if (booking.is_round_trip) {
+        if (!booking.return_original_id) {
+          throw new Error('Không tìm thấy thông tin vé về');
+        }
+
+        console.log('[MyBookings] Cancelling round-trip booking:', {
+          outboundId: booking.original_id,
+          returnId: booking.return_original_id,
+          outboundTicket: booking.ticket_number,
+          timestamp: new Date().toISOString()
+        });
+
+        // Hủy vé đi
+        const outboundResponse = await bookingService.cancelBooking(booking.original_id);
+        if (outboundResponse.status !== 'success') {
+          throw new Error(outboundResponse.message || 'Không thể hủy vé đi');
+        }
+
+        // Hủy vé về
+        const returnResponse = await bookingService.cancelBooking(booking.return_original_id);
+        if (returnResponse.status !== 'success') {
+          throw new Error(returnResponse.message || 'Không thể hủy vé về');
+        }
+
+        console.log('[MyBookings] Round-trip booking cancelled successfully:', {
+          outboundId: booking.original_id,
+          returnId: booking.return_original_id,
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        // Hủy vé một chiều - sử dụng ID gốc
+        const originalId = booking.original_id || booking.id;
+        console.log('[MyBookings] Cancelling one-way booking:', {
+          originalId,
+          bookingId,
+          ticketNumber: booking.ticket_number,
+          timestamp: new Date().toISOString()
+        });
+
+        const response = await bookingService.cancelBooking(originalId);
+        if (response.status !== 'success') {
+          throw new Error(response.message || 'Không thể hủy đặt vé');
+        }
+
+        console.log('[MyBookings] One-way booking cancelled successfully:', {
+          originalId,
+          timestamp: new Date().toISOString()
+        });
+      }
 
       // Force refresh khi hủy vé để cập nhật danh sách ngay lập tức
       await loadBookings(true);
@@ -225,72 +328,164 @@ const MyBookings = () => {
         timestamp: new Date().toISOString()
       });
       setError(err.message || 'Không thể hủy đặt vé');
+    } finally {
+      setLoading(false);
     }
   };
   // Group round-trip bookings by checking if bookings are made within a short time of each other
   const groupReturnFlights = (bookingsList) => {
-    console.log('[MyBookings] Grouping bookings:', bookingsList);
-    const groups = new Map();
+    // Lấy ID của booking cuối cùng từ localStorage
+    const lastBookingId = localStorage.getItem('lastBookingId');
     
-    // Sort bookings by booking date first, then by departure time
-    const sortedBookings = [...bookingsList].sort((a, b) => {
-      const bookingDateDiff = new Date(b.booking_date) - new Date(a.booking_date);
-      if (bookingDateDiff !== 0) return bookingDateDiff;
-      return new Date(a.Flight?.departure_time) - new Date(b.Flight?.departure_time);
+    // Log raw data
+    console.log('[MyBookings] Raw bookings data:', {
+      lastBookingId,
+      bookings: bookingsList.map(b => ({
+        id: b.id,
+        flight: b.Flight?.flight_number,
+        origin: b.Flight?.origin,
+        destination: b.Flight?.destination,
+        departure: b.Flight?.departure_time,
+        created: b.createdAt,
+        ticket_number: b.ticket_number
+      })),
+      timestamp: new Date().toISOString()
     });
-    
-    sortedBookings.forEach(booking => {
-      const bookingDate = new Date(booking.booking_date);
-      const flightOrigin = booking.Flight?.origin;
-      const flightDest = booking.Flight?.destination;
-      let isGrouped = false;      // Try to find a matching return booking group
-      for (let [key, group] of groups) {
-        const [firstBooking] = group;
+
+    // Create pairs of bookings made within 5 seconds
+    const pairs = [];
+    const used = new Set();
+
+    // Sắp xếp bookings theo thời gian tạo
+    const sortedBookings = [...bookingsList].sort((a, b) => 
+      new Date(a.createdAt) - new Date(b.createdAt)
+    );
+
+    // Tìm và ghép các vé khứ hồi
+    sortedBookings.forEach((booking1, i) => {
+      if (used.has(booking1.id)) return;
+
+      // Find matching return flight
+      const match = sortedBookings.find((booking2, j) => {
+        if (i === j || used.has(booking2.id)) return false;
         
-        // Check if this could be a return flight by:
-        // 1. Group has only one booking
-        // 2. The destinations match as origin/destination reversed
-        // 3. The bookings were made within 5 minutes of each other
-        // 4. Return flight departs after outbound flight
-        const timeDiff = Math.abs(bookingDate - new Date(firstBooking.booking_date));
-        const isWithin5Minutes = timeDiff <= 5 * 60 * 1000; // 5 minutes in milliseconds
+        const time1 = new Date(booking1.createdAt).getTime();
+        const time2 = new Date(booking2.createdAt).getTime();
         
-        if (group.length === 1 && 
-            firstBooking.Flight?.destination === booking.Flight?.origin && 
-            firstBooking.Flight?.origin === booking.Flight?.destination &&
-            isWithin5Minutes &&
-            new Date(booking.Flight?.departure_time) > new Date(firstBooking.Flight?.departure_time)) {
-          
-          console.log('[MyBookings] Found return flight:', {
-            outbound: {
-              flight: firstBooking.Flight?.flight_number,
-              from: firstBooking.Flight?.origin,
-              to: firstBooking.Flight?.destination,
-              departure: firstBooking.Flight?.departure_time
-            },
-            inbound: {
-              flight: booking.Flight?.flight_number,
-              from: booking.Flight?.origin,
-              to: booking.Flight?.destination,
-              departure: booking.Flight?.departure_time
-            }
-          });
-          
-          group.push(booking);
-          isGrouped = true;
-          break;
-        }
-      }      // If no matching return flight found, create new group
-      if (!isGrouped) {
-        // Use booking timestamp as key to help match return flights
-        const key = `${booking.booking_date}-${flightOrigin}-${flightDest}`;
-        groups.set(key, [booking]);
+        return Math.abs(time1 - time2) < 5000 && // Within 5 seconds
+               booking1.class === booking2.class && // Same class
+               booking1.Flight.origin === booking2.Flight.destination && // Return trip
+               booking1.Flight.destination === booking2.Flight.origin;
+      });
+
+      if (match) {
+        used.add(booking1.id);
+        used.add(match.id);
+        pairs.push([booking1, match]);
       }
     });
+
+    // Process pairs into round-trip tickets
+    const processedBookings = [];
+    let roundTripCount = 0; // Đếm số vé khứ hồi
+
+    pairs.forEach(([outbound, inbound]) => {
+      roundTripCount++; // Tăng số thứ tự vé khứ hồi
+      // Sử dụng ID của vé đi làm mã vé, ưu tiên lastBookingId nếu có
+      const ticketNumber = `${outbound.Flight.flight_number}-${outbound.Flight.id}-${lastBookingId || outbound.id}`;
+
+      console.log('[MyBookings] Creating round-trip ticket:', {
+        ticket: ticketNumber,
+        roundTripNumber: roundTripCount,
+        outbound: outbound.Flight.flight_number,
+        inbound: inbound.Flight.flight_number,
+        original_ticket: outbound.ticket_number,
+        lastBookingId,
+        timestamp: new Date().toISOString()
+      });
+
+      processedBookings.push({
+        ...outbound,
+        id: `${outbound.id}-${inbound.id}`,
+        original_id: outbound.id, // Lưu ID gốc của vé đi
+        is_round_trip: true,
+        round_trip_number: roundTripCount,
+        ticket_number: ticketNumber,
+        outbound_flight: outbound.Flight,
+        return_flight: inbound.Flight,
+        outbound_seat: outbound.Seat,
+        return_seat: inbound.Seat,
+        total_price: Number(outbound.total_price) + Number(inbound.total_price)
+      });
+    });
+
+    // Process remaining unpaired bookings
+    let oneWayCount = 0; // Đếm số vé một chiều
+    sortedBookings.forEach(booking => {
+      if (!used.has(booking.id)) {
+        oneWayCount++; // Tăng số thứ tự vé một chiều
+        // Sử dụng ID của vé làm mã vé, ưu tiên lastBookingId nếu có
+        const ticketNumber = `${booking.Flight.flight_number}-${booking.Flight.id}-${lastBookingId || booking.id}`;
+
+        console.log('[MyBookings] Creating one-way ticket:', {
+          ticket: ticketNumber,
+          oneWayNumber: oneWayCount,
+          flight: booking.Flight.flight_number,
+          original_ticket: booking.ticket_number,
+          lastBookingId,
+          timestamp: new Date().toISOString()
+        });
+
+        processedBookings.push({
+          ...booking,
+          original_id: booking.id, // Lưu ID gốc của vé
+          is_round_trip: false,
+          one_way_number: oneWayCount,
+          ticket_number: ticketNumber,
+          outbound_flight: booking.Flight,
+          outbound_seat: booking.Seat
+        });
+      }
+    });
+
+    // Xóa lastBookingId sau khi đã sử dụng
+    if (lastBookingId) {
+      localStorage.removeItem('lastBookingId');
+      console.log('[MyBookings] Removed lastBookingId:', {
+        id: lastBookingId,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    console.log('[MyBookings] Final processed bookings:', processedBookings.map(b => ({
+      ticket: b.ticket_number,
+      isRoundTrip: b.is_round_trip,
+      roundTripNumber: b.round_trip_number,
+      oneWayNumber: b.one_way_number,
+      originalId: b.original_id,
+      timestamp: new Date().toISOString()
+    })));
+
+    return processedBookings.sort((a, b) => 
+      new Date(b.createdAt) - new Date(a.createdAt)
+    );
+  };
+
+  // Hàm helper để xử lý booking đơn lẻ
+  const processBooking = (booking, processedBookings) => {
+    const timestamp = new Date(booking.createdAt).getTime();
+    const passengerNumber = booking.passenger_number || '1';
+    const ticketNumber = `${booking.Flight.flight_number}-${passengerNumber}-${timestamp}`;
     
-    // Sắp xếp các nhóm theo thời gian khởi hành gần nhất
-    return Array.from(groups.values())
-      .sort((a, b) => new Date(b[0].Flight?.departure_time) - new Date(a[0].Flight?.departure_time));
+    processedBookings.push({
+      ...booking,
+      is_round_trip: false,
+      ticket_number: ticketNumber,
+      passenger_number: passengerNumber,
+      outbound_flight: booking.Flight,
+      outbound_seat: booking.Seat,
+      total_price: Number(booking.total_price)
+    });
   };
 
   if (!user) {
@@ -309,134 +504,161 @@ const MyBookings = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Đặt vé của tôi</h1>
-      
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8">Đặt chỗ của tôi</h1>
+        
+        {error && (
+          <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+            <span className="block sm:inline">{error}</span>
+            <button
+              className="absolute top-0 bottom-0 right-0 px-4 py-3"
+              onClick={() => setError('')}
+            >
+              <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <title>Close</title>
+                <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
               </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-700">{error}</p>
-              <button
-                onClick={() => {
-                  setError('');
-                  loadBookings();
-                }}
-                className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
-              >
-                Thử lại
-              </button>
+            </button>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Đang tải danh sách đặt vé...</p>
             </div>
           </div>
-        </div>
-      )}
+        ) : bookings.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-600">Bạn chưa có đặt chỗ nào.</p>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {groupReturnFlights(bookings).map((booking) => (
+              <div key={booking.ticket_number} className="bg-white shadow rounded-lg p-8">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h2 className="text-xl font-semibold mb-2">
+                      {booking.is_round_trip ? 'Vé khứ hồi' : 'Vé một chiều'} {booking.ticket_number}
+                    </h2>
+                    <p className="text-gray-600">
+                      Ngày đặt: {formatDateTime(booking.createdAt)}
+                    </p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    booking.status === 'Confirmed' ? 'bg-green-100 text-green-800' :
+                    booking.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {booking.status === 'Confirmed' ? 'Đã xác nhận' :
+                     booking.status === 'Cancelled' ? 'Đã hủy' :
+                     'Đang chờ xác nhận'}
+                  </span>
+                </div>
 
-      {!error && bookings.length === 0 && (
-        <div className="bg-gray-50 rounded-lg p-8 text-center">
-          <p className="text-gray-600">Bạn chưa có đặt vé nào</p>
-          <button
-            onClick={() => navigate('/')}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-          >
-            Tìm chuyến bay
-          </button>
-        </div>
-      )}
-
-      <div className="space-y-6">
-        {groupReturnFlights(bookings).map((bookingGroup, groupIndex) => (
-          <div key={groupIndex} className="bg-white rounded-lg shadow-lg p-6">
-            <div className="mb-4">
-              <h2 className="text-xl font-semibold mb-2">
-                {bookingGroup.length > 1 ? 'Vé Khứ hồi' : 'Vé Một chiều'}
-              </h2>
-            </div>
-            
-            <div className="space-y-4">
-              {bookingGroup.map((booking, index) => (
-                <div key={booking.id} className={`${index > 0 ? 'border-t pt-4' : ''}`}>
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">
-                        {index === 0 && bookingGroup.length > 1 ? 'Chuyến đi' : 
-                         index === 1 ? 'Chuyến về' : 
-                         `Chuyến bay ${booking.Flight?.flight_number || 'N/A'}`}
-                      </h3>
-                      
-                      <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                        <div>
-                          <p className="text-gray-600">Điểm đi</p>
-                          <p className="font-medium">{getCityName(booking.Flight?.origin) || 'N/A'}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600">Điểm đến</p>
-                          <p className="font-medium">{getCityName(booking.Flight?.destination) || 'N/A'}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600">Giờ khởi hành</p>
-                          <p className="font-medium">
-                            {booking.Flight?.departure_time
-                              ? new Date(booking.Flight.departure_time).toLocaleString('vi-VN')
-                              : 'N/A'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600">Giờ đến</p>
-                          <p className="font-medium">
-                            {booking.Flight?.arrival_time
-                              ? new Date(booking.Flight.arrival_time).toLocaleString('vi-VN')
-                              : 'N/A'}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div>                        <p className="text-gray-600">Hạng ghế</p>
-                        <p className="font-medium">{booking.Seat?.seat_type || 'N/A'}</p>
-                      </div>  
-
-                      <div>
-                        <p className="text-gray-600">Trạng thái</p>
-                        <p className={`font-medium ${
-                          booking.status === 'Confirmed' ? 'text-green-600' :
-                          booking.status === 'Cancelled' ? 'text-red-600' :
-                          'text-yellow-600'
-                        }`}>
-                          {booking.status === 'Confirmed' ? 'Đã xác nhận' :
-                           booking.status === 'Cancelled' ? 'Đã hủy' :
-                           'Đang chờ xác nhận'}
-                        </p>
-                      </div>
+                {/* Chuyến bay đi */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="font-semibold mb-4 text-blue-600">Chuyến bay đi</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Mã chuyến bay</p>
+                      <p className="font-medium">{booking.Flight?.flight_number}</p>
                     </div>
-
-                    {booking.status === 'Confirmed' && (
-                      <div className="flex flex-col items-end gap-2">
-                        <button
-                          onClick={() => handleCancelBooking(booking.id, booking.Flight?.departure_time)}
-                          className={`px-4 py-2 rounded-md transition-colors ${
-                            new Date(booking.Flight?.departure_time) - new Date() < 24 * 60 * 60 * 1000
-                              ? 'bg-gray-400 cursor-not-allowed'
-                              : 'bg-red-600 hover:bg-red-700'
-                          } text-white`}
-                          disabled={new Date(booking.Flight?.departure_time) - new Date() < 24 * 60 * 60 * 1000}
-                        >
-                          Hủy đặt vé
-                        </button>
-                        <p className="text-sm text-gray-500">
-                          *Chỉ có thể hủy trước 24h khởi hành
-                        </p>
-                      </div>
-                    )}
+                    <div>
+                      <p className="text-sm text-gray-600">Hành trình</p>
+                      <p className="font-medium">
+                        {getCityName(booking.Flight?.origin)} → {getCityName(booking.Flight?.destination)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Ngày khởi hành</p>
+                      <p className="font-medium">
+                        {formatDateTime(booking.Flight?.departure_time)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Ngày đến</p>
+                      <p className="font-medium">
+                        {formatDateTime(booking.Flight?.arrival_time)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Ghế</p>
+                      <p className="font-medium text-blue-600">{booking.seat_number}</p>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
+
+                {/* Chuyến bay về (chỉ hiển thị nếu là vé khứ hồi) */}
+                {booking.is_round_trip && booking.return_flight && (
+                  <div className="border-t border-gray-200 mt-6 pt-6">
+                    <h3 className="font-semibold mb-4 text-green-600">Chuyến bay về</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-600">Mã chuyến bay</p>
+                        <p className="font-medium">{booking.return_flight?.flight_number}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Hành trình</p>
+                        <p className="font-medium">
+                          {getCityName(booking.return_flight?.origin)} → {getCityName(booking.return_flight?.destination)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Ngày khởi hành</p>
+                        <p className="font-medium">
+                          {formatDateTime(booking.return_flight?.departure_time)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Ngày đến</p>
+                        <p className="font-medium">
+                          {formatDateTime(booking.return_flight?.arrival_time)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Ghế</p>
+                        <p className="font-medium text-green-600">{booking.return_seat_number}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Thông tin thanh toán */}
+                <div className="border-t border-gray-200 mt-6 pt-6">
+                  <h3 className="font-semibold mb-4">Thông tin thanh toán</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Phương thức thanh toán</p>
+                      <p className="font-medium">{booking.payment_method}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Trạng thái</p>
+                      <p className="font-medium text-green-600">Đã thanh toán</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Tổng tiền</p>
+                      <p className="font-medium">{formatPrice(booking.total_price)} VNĐ</p>
+                    </div>
+                  </div>
+                </div>
+
+                {booking.status === 'Confirmed' && (
+                  <div className="mt-6 flex justify-end">
+                    <button
+                      onClick={() => handleCancelBooking(booking.id, booking.Flight?.departure_time)}
+                      className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                    >
+                      Hủy đặt chỗ
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

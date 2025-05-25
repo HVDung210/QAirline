@@ -113,7 +113,8 @@ router.post('/', auth, async (req, res) => {
       payment_method,
       booking_date: now,
       status: 'Confirmed',
-      payment_status: 'Pending'
+      payment_status: 'Confirmed',
+      booking_reference: `BK${Date.now()}${Math.floor(Math.random() * 1000)}`
     }, { transaction });
 
     // Update seat availability
@@ -181,33 +182,55 @@ router.patch('/:id/cancel', auth, async (req, res) => {
       throw new Error('Booking not found or already cancelled');
     }
 
-    // Validate cancellation timeframe
-    const departureTime = new Date(booking.Flight.departure_time);
+    // Validate cancellation timeframe based on booking creation time
     const now = new Date();
-    const hoursUntilDeparture = (departureTime - now) / (1000 * 60 * 60);
+    const bookingTime = new Date(booking.createdAt);
+    const hoursSinceBooking = (now - bookingTime) / (1000 * 60 * 60);
 
-    if (hoursUntilDeparture < 24) {
-      throw new Error('Cannot cancel booking within 24 hours of departure');
-    }
-
-    // Cancel booking and make seat available
-    await booking.update({ status: 'Cancelled' }, { transaction });
-    await Seat.update(
-      { is_available: true },
-      { 
-        where: { id: booking.seat_id },
-        transaction
-      }
-    );
-
-    await transaction.commit();
-    res.json({
-      status: 'success',
-      data: booking
+    console.log('Cancellation check:', {
+      bookingId: booking.id,
+      bookingTime: bookingTime.toISOString(),
+      now: now.toISOString(),
+      hoursSinceBooking: hoursSinceBooking,
+      createdAt: booking.createdAt,
+      departureTime: booking.Flight.departure_time,
+      status: booking.status,
+      customerId: customer.id
     });
+
+    // Allow cancellation if booking was made within last 24 hours
+    if (hoursSinceBooking <= 24) {
+      // Cancel booking and make seat available
+      await booking.update({ 
+        status: 'Cancelled',
+        updatedAt: now
+      }, { transaction });
+
+      await Seat.update(
+        { is_available: true },
+        { 
+          where: { id: booking.seat_id },
+          transaction
+        }
+      );
+
+      await transaction.commit();
+      res.json({
+        status: 'success',
+        message: 'Booking cancelled successfully',
+        data: booking
+      });
+    } else {
+      throw new Error('Không thể hủy vé sau 24 giờ kể từ khi đặt');
+    }
   } catch (error) {
     await transaction.rollback();
-    console.error('Cancel booking error:', error);
+    console.error('Cancel booking error:', {
+      error: error.message,
+      bookingId: req.params.id,
+      userId: req.user.id,
+      timestamp: new Date().toISOString()
+    });
     res.status(400).json({ 
       status: 'error',
       message: error.message || 'Could not cancel booking'

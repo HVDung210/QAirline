@@ -97,31 +97,65 @@ const BookingForm = () => {
     }
 
     try {
-      console.log('Submitting booking data:', {
-        flight_id: flightId,
-        seat_id: selectedSeat.id,
-        passengers: bookingData.passengers,
-        class: selectedSeat.seat_type,
-        payment_method: bookingData.payment_method
-      });
+      // Kiểm tra số ghế trống
+      const availableSeats = flight.Seats?.filter(seat => 
+        seat.is_available && seat.seat_type === selectedSeat.seat_type
+      ).length || 0;
 
+      if (availableSeats < bookingData.passengers) {
+        setError(`Chỉ còn ${availableSeats} ghế trống cho hạng ${selectedSeat.seat_type}`);
+        setLoadingLocal(false);
+        return;
+      }
+
+      // Lấy danh sách ghế trống cùng loại
+      const availableSeatsList = flight.Seats?.filter(seat => 
+        seat.is_available && seat.seat_type === selectedSeat.seat_type
+      ).slice(0, bookingData.passengers);
+
+      // Tạo một booking duy nhất cho tất cả hành khách
       const response = await bookingService.createBooking({
         flight_id: flightId,
-        seat_id: selectedSeat.id,
+        seat_ids: availableSeatsList.map(seat => seat.id),
         passengers: bookingData.passengers,
         class: selectedSeat.seat_type,
-        payment_method: bookingData.payment_method
+        payment_method: bookingData.payment_method,
+        seats: availableSeatsList.map(seat => ({
+          seat_number: seat.seat_number,
+          seat_type: seat.seat_type,
+          price: seat.price
+        }))
       });
-
-      console.log('Booking response:', response);
-
-      if (response.status === 'success' && response.data) {
-        console.log('Navigating to success page with booking:', response.data);
+      
+      if (response.status === 'success') {
+        // Lưu ID của booking vào localStorage để đảm bảo nhất quán
+        const bookingId = response.data.id;
+        localStorage.setItem('lastBookingId', bookingId);
+        
+        // Thêm original_id vào response data
+        const bookingData = {
+          ...response.data,
+          original_id: bookingId
+        };
+        
         navigate('/bookings/success', {
-          state: { booking: response.data }
+          state: { 
+            bookings: [bookingData],
+            totalAmount: response.data.total_price,
+            searchParams: {
+              origin: flight.origin,
+              destination: flight.destination
+            },
+            passengers: bookingData.passengers,
+            seats: availableSeatsList.map(seat => ({
+              seat_number: seat.seat_number,
+              seat_type: seat.seat_type,
+              price: seat.price
+            }))
+          }
         });
       } else {
-        throw new Error('Invalid response format from server');
+        throw new Error('Lỗi khi tạo booking');
       }
     } catch (err) {
       console.error('Booking error:', err);
