@@ -81,15 +81,6 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Call to Action */}
-        <div className="text-center mt-16">
-          <button
-            onClick={() => navigate('/flights')}
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-lg"
-          >
-            Xem tất cả chuyến bay
-          </button>
-        </div>
       </div>
     </div>
   );

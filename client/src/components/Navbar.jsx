@@ -98,12 +98,7 @@ const Navbar = () => {
                 >
                   Trang chủ
                 </Link>
-                <Link
-                  to="/flights/search"
-                  className="border-transparent text-gray-500 hover:border-blue-500 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                >
-                  Tìm chuyến bay
-                </Link>
+                
                 {user && (
                   <Link
                     to="/bookings/my-bookings"

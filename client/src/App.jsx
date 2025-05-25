@@ -6,7 +6,6 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import FlightSearch from './components/FlightSearch';
 import FlightSearchResults from './pages/FlightSearchResults';
 import BookingForm from './components/BookingForm';
 import MyBookings from './pages/MyBookings';
@@ -23,7 +22,6 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/flights/search" element={<FlightSearch />} />
               <Route path="/flights/search-results" element={<FlightSearchResults />} />
               
               {/* Protected Routes */}
