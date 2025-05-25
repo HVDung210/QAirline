@@ -182,30 +182,19 @@ router.patch('/:id/cancel', auth, async (req, res) => {
       throw new Error('Booking not found or already cancelled');
     }
 
-    // Validate cancellation timeframe based on booking creation time
+    // Validate cancellation timeframe
     const now = new Date();
     const bookingTime = new Date(booking.createdAt);
     const hoursSinceBooking = (now - bookingTime) / (1000 * 60 * 60);
 
-    console.log('Cancellation check:', {
+    console.log('Processing cancellation:', {
       bookingId: booking.id,
-      bookingTime: bookingTime.toISOString(),
-      now: now.toISOString(),
-      hoursSinceBooking: hoursSinceBooking,
-      createdAt: booking.createdAt,
-      departureTime: booking.Flight.departure_time,
-      status: booking.status,
-      customerId: customer.id
+      hoursSinceBooking,
+      timestamp: now.toISOString()
     });
 
-    // Allow cancellation if booking was made within last 24 hours
     if (hoursSinceBooking <= 24) {
-      // Cancel booking and make seat available
-      await booking.update({ 
-        status: 'Cancelled',
-        updatedAt: now
-      }, { transaction });
-
+      // Make seat available again
       await Seat.update(
         { is_available: true },
         { 
@@ -214,11 +203,13 @@ router.patch('/:id/cancel', auth, async (req, res) => {
         }
       );
 
+      // Xóa booking khỏi database
+      await booking.destroy({ transaction });
+
       await transaction.commit();
       res.json({
         status: 'success',
-        message: 'Booking cancelled successfully',
-        data: booking
+        message: 'Booking deleted successfully'
       });
     } else {
       throw new Error('Không thể hủy vé sau 24 giờ kể từ khi đặt');
@@ -228,8 +219,7 @@ router.patch('/:id/cancel', auth, async (req, res) => {
     console.error('Cancel booking error:', {
       error: error.message,
       bookingId: req.params.id,
-      userId: req.user.id,
-      timestamp: new Date().toISOString()
+      userId: req.user.id
     });
     res.status(400).json({ 
       status: 'error',

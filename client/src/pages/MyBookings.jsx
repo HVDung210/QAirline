@@ -334,47 +334,39 @@ const MyBookings = () => {
   };
   // Group round-trip bookings by checking if bookings are made within a short time of each other
   const groupReturnFlights = (bookingsList) => {
-    // Lấy ID của booking cuối cùng từ localStorage
-    const lastBookingId = localStorage.getItem('lastBookingId');
-    
     // Log raw data
     console.log('[MyBookings] Raw bookings data:', {
-      lastBookingId,
       bookings: bookingsList.map(b => ({
         id: b.id,
         flight: b.Flight?.flight_number,
+        passenger: b.passenger_number,
         origin: b.Flight?.origin,
-        destination: b.Flight?.destination,
-        departure: b.Flight?.departure_time,
-        created: b.createdAt,
-        ticket_number: b.ticket_number
+        destination: b.Flight?.destination
       })),
       timestamp: new Date().toISOString()
     });
 
-    // Create pairs of bookings made within 5 seconds
-    const pairs = [];
-    const used = new Set();
-
-    // Sắp xếp bookings theo thời gian tạo
+    // Sort bookings by creation time
     const sortedBookings = [...bookingsList].sort((a, b) => 
       new Date(a.createdAt) - new Date(b.createdAt)
     );
 
-    // Tìm và ghép các vé khứ hồi
+    const pairs = [];
+    const used = new Set();
+
+    // Find round-trip pairs
     sortedBookings.forEach((booking1, i) => {
       if (used.has(booking1.id)) return;
 
-      // Find matching return flight
       const match = sortedBookings.find((booking2, j) => {
         if (i === j || used.has(booking2.id)) return false;
         
         const time1 = new Date(booking1.createdAt).getTime();
         const time2 = new Date(booking2.createdAt).getTime();
         
-        return Math.abs(time1 - time2) < 5000 && // Within 5 seconds
-               booking1.class === booking2.class && // Same class
-               booking1.Flight.origin === booking2.Flight.destination && // Return trip
+        return Math.abs(time1 - time2) < 5000 && 
+               booking1.class === booking2.class &&
+               booking1.Flight.origin === booking2.Flight.destination &&
                booking1.Flight.destination === booking2.Flight.origin;
       });
 
@@ -385,31 +377,29 @@ const MyBookings = () => {
       }
     });
 
-    // Process pairs into round-trip tickets
+    // Process bookings
     const processedBookings = [];
-    let roundTripCount = 0; // Đếm số vé khứ hồi
+    let passengerCount = 0;
 
+    // Process round-trip pairs
     pairs.forEach(([outbound, inbound]) => {
-      roundTripCount++; // Tăng số thứ tự vé khứ hồi
-      // Sử dụng ID của vé đi làm mã vé, ưu tiên lastBookingId nếu có
-      const ticketNumber = `${outbound.Flight.flight_number}-${outbound.Flight.id}-${lastBookingId || outbound.id}`;
+      // Sử dụng Flight.id thay vì passengerCount
+      const ticketNumber = `${outbound.Flight.flight_number}-${outbound.Flight.id}-${outbound.id}`;
 
       console.log('[MyBookings] Creating round-trip ticket:', {
         ticket: ticketNumber,
-        roundTripNumber: roundTripCount,
+        flightId: outbound.Flight.id,
         outbound: outbound.Flight.flight_number,
-        inbound: inbound.Flight.flight_number,
-        original_ticket: outbound.ticket_number,
-        lastBookingId,
-        timestamp: new Date().toISOString()
+        return: inbound.Flight.flight_number
       });
 
       processedBookings.push({
         ...outbound,
         id: `${outbound.id}-${inbound.id}`,
-        original_id: outbound.id, // Lưu ID gốc của vé đi
+        original_id: outbound.id,
+        return_original_id: inbound.id,
         is_round_trip: true,
-        round_trip_number: roundTripCount,
+        passenger_number: outbound.Flight.id, // Cập nhật passenger_number
         ticket_number: ticketNumber,
         outbound_flight: outbound.Flight,
         return_flight: inbound.Flight,
@@ -419,28 +409,24 @@ const MyBookings = () => {
       });
     });
 
-    // Process remaining unpaired bookings
-    let oneWayCount = 0; // Đếm số vé một chiều
+    // Process one-way tickets
     sortedBookings.forEach(booking => {
       if (!used.has(booking.id)) {
-        oneWayCount++; // Tăng số thứ tự vé một chiều
-        // Sử dụng ID của vé làm mã vé, ưu tiên lastBookingId nếu có
-        const ticketNumber = `${booking.Flight.flight_number}-${booking.Flight.id}-${lastBookingId || booking.id}`;
+        // Sử dụng Flight.id cho vé một chiều
+        const ticketNumber = `${booking.Flight.flight_number}-${booking.Flight.id}-${booking.id}`;
 
         console.log('[MyBookings] Creating one-way ticket:', {
           ticket: ticketNumber,
-          oneWayNumber: oneWayCount,
-          flight: booking.Flight.flight_number,
-          original_ticket: booking.ticket_number,
-          lastBookingId,
-          timestamp: new Date().toISOString()
+          flightId: booking.Flight.id,
+          flight: booking.Flight.flight_number
         });
 
         processedBookings.push({
           ...booking,
-          original_id: booking.id, // Lưu ID gốc của vé
+          id: booking.id.toString(),
+          original_id: booking.id,
           is_round_trip: false,
-          one_way_number: oneWayCount,
+          passenger_number: booking.Flight.id, // Cập nhật passenger_number
           ticket_number: ticketNumber,
           outbound_flight: booking.Flight,
           outbound_seat: booking.Seat
@@ -448,22 +434,11 @@ const MyBookings = () => {
       }
     });
 
-    // Xóa lastBookingId sau khi đã sử dụng
-    if (lastBookingId) {
-      localStorage.removeItem('lastBookingId');
-      console.log('[MyBookings] Removed lastBookingId:', {
-        id: lastBookingId,
-        timestamp: new Date().toISOString()
-      });
-    }
-
     console.log('[MyBookings] Final processed bookings:', processedBookings.map(b => ({
       ticket: b.ticket_number,
       isRoundTrip: b.is_round_trip,
-      roundTripNumber: b.round_trip_number,
-      oneWayNumber: b.one_way_number,
       originalId: b.original_id,
-      timestamp: new Date().toISOString()
+      returnOriginalId: b.return_original_id
     })));
 
     return processedBookings.sort((a, b) => 
