@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import * as bookingService from '../services/bookingService';
+import { bookingService } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import { flightService } from '../services/api';
 
 const BookingForm = () => {
   const navigate = useNavigate();
@@ -42,7 +41,7 @@ const BookingForm = () => {
 
   const fetchFlightDetails = async () => {
     try {
-      const response = await flightService.getFlightDetails(flightId);
+      const response = await bookingService.getFlightDetails(flightId);
       console.log('Flight details response:', response);
       setFlight(response.data);
     } catch (err) {

@@ -13,11 +13,14 @@ const Navbar = () => {
   const [notification, setNotification] = useState({ open: false, message: '', type: 'success' });
 
   useEffect(() => {
-    console.log('[Navbar] User state changed:', {
-      hasUser: !!user,
+    const userInfo = {
       email: user?.email,
+      role: user?.role,
+      isLoggedIn: !!user,
+      currentPath: window.location.pathname,
       timestamp: new Date().toISOString()
-    });
+    };
+    console.log('[Navbar] User state changed:', JSON.stringify(userInfo, null, 2));
   }, [user]);
 
   const handleMenu = (event) => {
@@ -28,22 +31,29 @@ const Navbar = () => {
     setAnchorEl(null);
   };
   const handleLogout = async () => {
-    console.log('[Navbar] Starting logout process');
-    handleClose();
+    const logoutInfo = {
+      email: user?.email,
+      role: user?.role,
+      currentPath: window.location.pathname,
+      timestamp: new Date().toISOString()
+    };
+    console.log('[Navbar] Starting logout process:', JSON.stringify(logoutInfo, null, 2));
     
     try {
-      // Chuyển hướng về trang chủ ngay lập tức
-      console.log('[Navbar] Navigating to home');
-      navigate('/');
-
-      // Sau đó mới thực hiện đăng xuất
-      const result = await logout();
+      // Nếu đang ở trang admin, chuyển về trang chủ trước
+      if (window.location.pathname.startsWith('/admin')) {
+        console.log('[Navbar] Navigating to home from admin page');
+        navigate('/');
+      }
       
-      console.log('[Navbar] Logout result:', {
+      const result = await logout();
+      const resultInfo = {
         success: result.success,
         message: result.message,
+        currentPath: window.location.pathname,
         timestamp: new Date().toISOString()
-      });
+      };
+      console.log('[Navbar] Logout result:', JSON.stringify(resultInfo, null, 2));
 
       // Show notification
       setNotification({
@@ -52,10 +62,12 @@ const Navbar = () => {
         type: result.success ? 'success' : 'error'
       });
     } catch (error) {
-      console.error('[Navbar] Error during logout:', {
-        error: error.message,
+      const errorInfo = {
+        message: error.message,
+        currentPath: window.location.pathname,
         timestamp: new Date().toISOString()
-      });
+      };
+      console.error('[Navbar] Logout error:', JSON.stringify(errorInfo, null, 2));
       
       setNotification({
         open: true,

@@ -1,14 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const authController = require('../controllers/authController');
+const authRoutes = require('./auth');
 const flightController = require('../controllers/flightController');
 const customerController = require('../controllers/customerController');
 const airplaneController = require('../controllers/airplaneController');
 const flightRoutes = require('./flightRoutes');
 
 // Auth routes
-router.post('/auth/login', authController.login);
-router.post('/auth/register', authController.register);
+router.use('/auth', authRoutes);
 
 // Flight routes
 router.use('/flights', flightRoutes);

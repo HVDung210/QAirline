@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { formatTime, formatDate, formatPrice } from '../utils/formatters';
-import { createBooking } from '../services/bookingService';
+import { bookingService } from '../services/api';
 import { getCityName } from '../data/cityMapping';
 import axios from 'axios';
 import FlightCard from '../components/FlightCard';
@@ -222,7 +222,7 @@ const FlightSearchResults = () => {
           timestamp: new Date().toISOString()
         });
 
-        const response = await createBooking(bookingData);
+        const response = await bookingService.createBooking(bookingData);
         console.log('[FlightSearchResults] Booking response:', {
           status: response.status,
           id: response.data.id,

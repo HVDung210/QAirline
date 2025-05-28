@@ -10,6 +10,9 @@ router.post('/register', validateRegister, authController.register);
 // Login
 router.post('/login', validateLogin, authController.login);
 
+// Logout
+router.post('/logout', auth, authController.logout);
+
 // Get current user
 router.get('/profile', auth, authController.getProfile);
 

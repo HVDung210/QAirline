@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,38 +14,63 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
+  const isRedirecting = useRef(false);
+  const redirectTimeout = useRef(null);
 
   // Get the redirect path from location state or default to home
   const from = location.state?.from || '/';
   const message = location.state?.message;
 
   useEffect(() => {
-    console.log('[Login] Component mounted. Auth state:', {
-      hasUser: !!user,
-      isLoading: authLoading,
-      redirectPath: from,
+    const authInfo = {
+      isLoggedIn: !!user,
+      email: user?.email,
+      role: user?.role,
       timestamp: new Date().toISOString()
-    });
+    };
+    console.log('[Login] Component mounted. Auth state:', JSON.stringify(authInfo, null, 2));
 
-    // Check if already logged in
-    if (user && !authLoading) {
-      console.log('[Login] User already logged in, redirecting to:', {
-        path: from,
+    // Nếu đã đăng nhập, chuyển hướng
+    if (user && !isRedirecting.current) {
+      const redirectInfo = {
         email: user.email,
+        role: user.role,
         timestamp: new Date().toISOString()
-      });
-      navigate(from, { replace: true });
+      };
+      console.log('[Login] User already logged in, redirecting:', JSON.stringify(redirectInfo, null, 2));
+      
+      isRedirecting.current = true;
+      const redirectPath = user.role === 'admin' ? '/admin' : from;
+      const pathInfo = {
+        path: redirectPath,
+        role: user.role,
+        timestamp: new Date().toISOString()
+      };
+      console.log('[Login] Executing redirect to:', JSON.stringify(pathInfo, null, 2));
+      
+      navigate(redirectPath, { replace: true });
     }
-  }, [user, authLoading, navigate, from]);
+  }, [user, navigate, from]);
 
-  // Show loading state while checking auth
+  // Show loading state
   if (authLoading) {
-    console.log('[Login] Checking auth state...');
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Đang kiểm tra trạng thái đăng nhập...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If already logged in, show loading
+  if (user) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Đang chuyển hướng...</p>
         </div>
       </div>
     );
@@ -61,39 +86,36 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('[Login] Form submitted:', {
+    setError('');
+    setLoading(true);
+
+    const submitInfo = {
       email: formData.email,
       timestamp: new Date().toISOString()
-    });
+    };
+    console.log('[Login] Form submitted:', JSON.stringify(submitInfo, null, 2));
 
-    setError('');
-    setSuccess('');
-    setLoading(true);
-  
     try {
       console.log('[Login] Attempting login...');
-      await login(formData);
+      const userData = await login(formData);
       
-      setSuccess('Đăng nhập thành công!');
-      console.log('[Login] Login successful, preparing redirect to:', {
-        path: from,
+      const successInfo = {
+        email: userData.email,
+        role: userData.role,
         timestamp: new Date().toISOString()
-      });
+      };
+      console.log('[Login] Login successful:', JSON.stringify(successInfo, null, 2));
 
-      // Add a delay for user feedback
-      setTimeout(() => {
-        console.log('[Login] Redirecting after delay:', {
-          path: from,
-          timestamp: new Date().toISOString()
-        });
-        navigate(from, { replace: true });
-      }, 1000);
-    } catch (err) {
-      console.error('[Login] Login failed:', {
-        error: err.message,
+      // Không cần chuyển hướng ở đây vì useEffect sẽ xử lý
+      setSuccess('Đăng nhập thành công!');
+    } catch (error) {
+      const errorInfo = {
+        message: error.message,
+        status: error.response?.status,
         timestamp: new Date().toISOString()
-      });
-      setError(err.response?.data?.message || 'Đăng nhập thất bại');
+      };
+      console.error('[Login] Login error:', JSON.stringify(errorInfo, null, 2));
+      setError(error.response?.data?.message || 'Đăng nhập thất bại');
     } finally {
       setLoading(false);
     }

@@ -141,6 +141,23 @@ class AuthController {
       res.status(404).json({ message: error.message });
     }
   }
+
+  async logout(req, res) {
+    try {
+      // Trong trường hợp này, chúng ta chỉ cần trả về success
+      // vì client sẽ tự xóa token và user data
+      res.json({
+        status: 'success',
+        message: 'Logout successful'
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      res.status(500).json({
+        status: 'error',
+        message: 'Something went wrong during logout'
+      });
+    }
+  }
 }
 
 module.exports = new AuthController(); 
