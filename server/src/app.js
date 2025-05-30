@@ -4,7 +4,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
 const routes = require('./routes');
-const flightRoutes = require('./routes/flightRoutes');
+const flightRoutes = require('./routes/flights');
+const postRoutes = require('./routes/posts'); 
 
 const app = express();
 
@@ -13,12 +14,23 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`, {
+    body: req.body,
+    params: req.params,
+    query: req.query
+  });
+  next();
+});
+
+// API Routes
+app.use('/api/flights', flightRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api', routes);
+
 // Serve static files
 app.use(express.static(path.join(__dirname, '../public')));
-
-// Routes
-app.use('/api', routes);
-app.use('/api/flights', flightRoutes);
 
 // Serve index.html for root route
 app.get('/', (req, res) => {
@@ -27,7 +39,7 @@ app.get('/', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Error:', err);
   res.status(500).json({
     status: 'error',
     message: 'Something went wrong!',

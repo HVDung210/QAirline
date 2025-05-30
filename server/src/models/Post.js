@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const Admin = require('./Admin');
+
+console.log('[Post Model] Initializing Post model...');
 
 const Post = sequelize.define('Post', {
   id: {
@@ -22,19 +23,7 @@ const Post = sequelize.define('Post', {
   },
   admin_id: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: Admin,
-      key: 'id'
-    }
-  },
-  created_at: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
-  },
-  updated_at: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
+    allowNull: false
   },
   start_date: {
     type: DataTypes.DATE,
@@ -52,9 +41,14 @@ const Post = sequelize.define('Post', {
     defaultValue: false,
     comment: 'Trạng thái công khai hoặc lưu nháp'
   }
+}, {
+  timestamps: true
 });
 
-// Define association
-Post.belongsTo(Admin, { foreignKey: 'admin_id' });
+console.log('[Post Model] Post model initialized with options:', {
+  tableName: Post.tableName,
+  attributes: Object.keys(Post.rawAttributes),
+  timestamps: true
+});
 
 module.exports = Post; 

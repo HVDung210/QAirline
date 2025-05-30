@@ -13,9 +13,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Avatar,
-  Menu,
-  MenuItem,
+  Tooltip,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -27,8 +25,10 @@ import {
   BarChart as BarChartIcon,
   Settings as SettingsIcon,
   AccountCircle as AccountCircleIcon,
+  ConfirmationNumber as ConfirmationNumberIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 const drawerWidth = 240;
 
@@ -55,6 +55,7 @@ const DashboardLayout = ({ children }) => {
   const [open, setOpen] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -73,18 +74,53 @@ const DashboardLayout = ({ children }) => {
   };
 
   const handleLogout = () => {
-    // Xử lý đăng xuất
-    localStorage.removeItem('token');
-    navigate('/login');
+    console.log('[Logout] Starting logout process...');
+    console.log('[Logout] Current auth state:', {
+      token: localStorage.getItem('token'),
+      user: localStorage.getItem('user'),
+      authState: localStorage.getItem('authState')
+    });
+
+    // Gọi hàm logout từ AuthContext để xóa cả state và localStorage
+    logout();
+
+    console.log('[Logout] After clearing storage:', {
+      token: localStorage.getItem('token'),
+      user: localStorage.getItem('user'),
+      authState: localStorage.getItem('authState')
+    });
+
+    console.log('[Logout] Redirecting to login page...');
+    // Chuyển hướng về trang login
+    navigate('/login', { replace: true });
   };
 
   const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin' },
-    { text: 'Chuyến Bay', icon: <FlightIcon />, path: '/admin/flights' },
-    { text: 'Tàu Bay', icon: <AirplaneIcon />, path: '/admin/airplanes' },
-    { text: 'Đặt Vé', icon: <BarChartIcon />, path: '/admin/bookings' },
-    { text: 'Bài Viết', icon: <ArticleIcon />, path: '/admin/posts' },
-    { text: 'Cài Đặt', icon: <SettingsIcon />, path: '/admin/settings' },
+    {
+      text: 'Dashboard',
+      icon: <DashboardIcon />,
+      path: '/admin'
+    },
+    {
+      text: 'Chuyến bay',
+      icon: <FlightIcon />,
+      path: '/admin/flights'
+    },
+    {
+      text: 'Máy bay',
+      icon: <AirplaneIcon />,
+      path: '/admin/airplanes'
+    },
+    {
+      text: 'Đặt chỗ',
+      icon: <ConfirmationNumberIcon />,
+      path: '/admin/bookings'
+    },
+    {
+      text: 'Bài viết',
+      icon: <ArticleIcon />,
+      path: '/admin/posts'
+    }
   ];
 
   return (
@@ -103,36 +139,13 @@ const DashboardLayout = ({ children }) => {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             QAirline Admin
           </Typography>
-          <div>
-            <IconButton
-              size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleMenu}
-              color="inherit"
-            >
-              <AccountCircleIcon />
-            </IconButton>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorEl}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-            >
-              <MenuItem onClick={() => navigate('/admin/profile')}>Hồ sơ</MenuItem>
-              <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
-            </Menu>
-          </div>
+          <Box sx={{ flexGrow: 0 }}>
+            <Tooltip title="Đăng xuất">
+              <IconButton onClick={handleLogout} color="inherit">
+                <AccountCircleIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
         </Toolbar>
       </AppBar>
       <Drawer

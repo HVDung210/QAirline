@@ -35,17 +35,14 @@ const Airplanes = () => {
   });
 
   useEffect(() => {
-    console.log('[Airplanes] Component mounted');
     fetchAirplanes();
   }, []);
 
   const fetchAirplanes = async () => {
     try {
-      console.log('[Airplanes] Fetching airplanes...');
       setLoading(true);
       const response = await adminService.getAirplanes();
-      console.log('[Airplanes] Received airplanes data:', response.data);
-      setAirplanes(response.data);
+      setAirplanes(response.data.airplanes);
     } catch (error) {
       console.error('[Airplanes] Error fetching airplanes:', error);
       toast.error('Lỗi khi tải danh sách máy bay');
@@ -161,7 +158,6 @@ const Airplanes = () => {
           columns={columns}
           pageSize={5}
           rowsPerPageOptions={[5]}
-          checkboxSelection
           disableSelectionOnClick
           loading={loading}
         />

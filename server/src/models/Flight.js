@@ -42,7 +42,7 @@ const Flight = sequelize.define('Flight', {
     allowNull: false
   },
   status: {
-    type: DataTypes.ENUM('Scheduled', 'Delayed', 'Cancelled'),
+    type: DataTypes.ENUM('Scheduled', 'Delayed'),
     allowNull: false,
     defaultValue: 'Scheduled'
   }
