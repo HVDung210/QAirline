@@ -362,9 +362,15 @@ export const adminService = {
     return response;
   },
   updateFlight: async (id, data) => {
-    console.log('[adminService] Calling updateFlight API for id:', id, 'with data:', data);
-    const response = await api.put(`/flights/${id}`, data);
-    return response;
+    try {
+      console.log('[adminService] Calling updateFlight API for id:', id, 'with data:', data);
+      const response = await api.put(`/flights/${id}`, data);
+      console.log('[adminService] Update flight response:', response);
+      return response;
+    } catch (error) {
+      console.error('[adminService] Error updating flight:', error);
+      throw error;
+    }
   },
   deleteFlight: async (id) => {
     console.log('[adminService] Calling deleteFlight API for id:', id);
@@ -396,24 +402,27 @@ export const adminService = {
 
   // Posts
   getPosts: async () => {
-    console.log('[adminService] Calling getPosts API');
+    console.log('[adminService] Getting posts with token:', localStorage.getItem('token'));
     const response = await api.get('/posts');
-    return response;
+    return response.data;
   },
-  createPost: async (data) => {
-    console.log('[adminService] Calling createPost API with data:', data);
-    const response = await api.post('/posts', data);
-    return response;
+
+  createPost: async (postData) => {
+    console.log('[adminService] Creating post with token:', localStorage.getItem('token'));
+    const response = await api.post('/posts', postData);
+    return response.data;
   },
-  updatePost: async (id, data) => {
-    console.log('[adminService] Calling updatePost API for id:', id, 'with data:', data);
-    const response = await api.put(`/posts/${id}`, data);
-    return response;
+
+  updatePost: async (id, postData) => {
+    console.log('[adminService] Updating post with token:', localStorage.getItem('token'));
+    const response = await api.put(`/posts/${id}`, postData);
+    return response.data;
   },
+
   deletePost: async (id) => {
-    console.log('[adminService] Calling deletePost API for id:', id);
+    console.log('[adminService] Deleting post with token:', localStorage.getItem('token'));
     const response = await api.delete(`/posts/${id}`);
-    return response;
+    return response.data;
   },
 
   // Statistics

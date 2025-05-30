@@ -1,19 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const authRoutes = require('./auth');
-const flightController = require('../controllers/flightController');
+const flightRoutes = require('./flights');
+const airplaneRoutes = require('./airplanes');
+const postRoutes = require('./posts');
+const bookingRoutes = require('./bookings');
+const customerRoutes = require('./customer');
 const customerController = require('../controllers/customerController');
 const airplaneController = require('../controllers/airplaneController');
-const flightRoutes = require('./flightRoutes');
 
-// Auth routes
+// API Routes
 router.use('/auth', authRoutes);
-
-// Flight routes
 router.use('/flights', flightRoutes);
-
-// Booking routes
-router.use('/bookings', require('./bookings'));
+router.use('/airplanes', airplaneRoutes);
+router.use('/posts', postRoutes);
+router.use('/bookings', bookingRoutes);
+router.use('/customers', customerRoutes);
 
 // Customer routes
 router.get('/customers', (req, res) => customerController.getAllCustomers(req, res));

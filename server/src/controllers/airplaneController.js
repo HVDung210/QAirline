@@ -10,17 +10,31 @@ class AirplaneController {
         include: [Airline],
         limit: parseInt(limit),
         offset: parseInt(offset),
-        order: [['created_at', 'DESC']]
+        order: [['createdAt', 'DESC']]
       });
 
       res.json({
+        status: 'success',
         total: airplanes.count,
         pages: Math.ceil(airplanes.count / limit),
         currentPage: parseInt(page),
-        airplanes: airplanes.rows
+        airplanes: airplanes.rows.map(airplane => ({
+          id: airplane.id,
+          model: airplane.model,
+          manufacturer: airplane.manufacturer,
+          seat_count: airplane.seat_count,
+          airline_id: airplane.airline_id,
+          airline: airplane.Airline ? {
+            id: airplane.Airline.id,
+            name: airplane.Airline.name
+          } : null
+        }))
       });
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      res.status(500).json({ 
+        status: 'error',
+        message: error.message 
+      });
     }
   }
 

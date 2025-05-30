@@ -115,6 +115,36 @@ module.exports = {
           promo_code: null,
           createdAt: new Date(),
           updatedAt: new Date()
+        },
+        {
+          user_id: customers[2].id,
+          address: '789 Tran Phu St, Da Nang',
+          country_name: 'Vietnam',
+          country_code: 'VNM',
+          first_name: 'C',
+          title: 'Mr',
+          middle_name: '',
+          last_name: 'Le',
+          date_of_birth: new Date('1988-11-20'),
+          gender: 'male',
+          promo_code: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          user_id: customers[3].id,
+          address: '321 Nguyen Hue St, HCMC',
+          country_name: 'Vietnam',
+          country_code: 'VNM',
+          first_name: 'D',
+          title: 'Ms',
+          middle_name: '',
+          last_name: 'Pham',
+          date_of_birth: new Date('1995-03-08'),
+          gender: 'female',
+          promo_code: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
         }
       ]);
       console.log('Customers created successfully');
@@ -501,12 +531,19 @@ module.exports = {
         }
       );
 
+      console.log('[Seeder] Found admin:', admin);
+
+      if (!admin || !admin[0]) {
+        console.error('[Seeder] No admin found for posts creation');
+        return;
+      }
+
       // Create Posts
-      console.log('Creating Posts...');
-      await queryInterface.bulkInsert('Posts', [
+      console.log('[Seeder] Starting to create posts...');
+      const posts = await queryInterface.bulkInsert('Posts', [
         {
-          title: 'Welcome to QAirline',
-          content: 'Welcome to our new airline booking system!',
+          title: 'Chào mừng đến với QAirline',
+          content: 'Chào mừng đến với hệ thống đặt vé máy bay mới của chúng tôi! Chúng tôi rất vui mừng mang đến cho bạn trải nghiệm đặt vé tốt nhất với giá cả cạnh tranh và dịch vụ xuất sắc.',
           post_type: 'announcement',
           admin_id: admin[0].id,
           is_published: true,
@@ -516,18 +553,52 @@ module.exports = {
           updatedAt: new Date()
         },
         {
-          title: 'Summer Promotion',
-          content: 'Book your summer flights now and get 20% off!',
+          title: 'Khuyến mãi mùa hè',
+          content: 'Đặt vé máy bay mùa hè ngay bây giờ và nhận giảm giá 20%! Áp dụng cho tất cả các chuyến bay nội địa từ tháng 6 đến tháng 8 năm 2024. Sử dụng mã SUMMER2024 khi thanh toán.',
           post_type: 'promotion',
           admin_id: admin[0].id,
           is_published: true,
-          start_date: new Date(),
+          start_date: new Date('2024-06-01'),
           end_date: new Date('2024-08-31'),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          title: 'Thêm tuyến bay mới',
+          content: 'Chúng tôi vui mừng thông báo về việc mở thêm các tuyến bay mới kết nối các thành phố lớn tại Việt Nam. Hãy khám phá mạng lưới mở rộng của chúng tôi và lên kế hoạch cho chuyến đi tiếp theo!',
+          post_type: 'news',
+          admin_id: admin[0].id,
+          is_published: true,
+          start_date: new Date(),
+          end_date: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          title: 'Về QAirline',
+          content: 'QAirline là hãng hàng không hàng đầu tại Việt Nam, cam kết cung cấp dịch vụ hàng không an toàn, thoải mái và giá cả phải chăng cho khách hàng.',
+          post_type: 'introduction',
+          admin_id: admin[0].id,
+          is_published: true,
+          start_date: new Date(),
+          end_date: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          title: 'Ưu đãi đặc biệt mùa đông',
+          content: 'Hãy chuẩn bị cho mùa đông với những ưu đãi đặc biệt của chúng tôi! Đặt vé cho tháng 12 và tháng 1 để tận hưởng những ưu đãi độc quyền.',
+          post_type: 'promotion',
+          admin_id: admin[0].id,
+          is_published: false,
+          start_date: new Date('2024-12-01'),
+          end_date: new Date('2025-01-31'),
           createdAt: new Date(),
           updatedAt: new Date()
         }
       ]);
-      console.log('Posts created successfully');
+
+      console.log('[Seeder] Posts created:', posts);
 
     } catch (error) {
       console.error('Error in seeder:', error);

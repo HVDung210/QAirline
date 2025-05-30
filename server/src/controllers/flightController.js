@@ -16,7 +16,27 @@ class FlightController {
 
       res.json({
         status: 'success',
-        data: flights
+        data: flights.map(flight => ({
+          id: flight.id,
+          flight_number: flight.flight_number,
+          airplane_id: flight.airplane_id,
+          origin: flight.origin,
+          destination: flight.destination,
+          departure_time: flight.departure_time,
+          arrival_time: flight.arrival_time,
+          duration: flight.duration,
+          status: flight.status,
+          airplane: flight.Airplane ? {
+            id: flight.Airplane.id,
+            model: flight.Airplane.model,
+            manufacturer: flight.Airplane.manufacturer,
+            seat_count: flight.Airplane.seat_count,
+            airline: flight.Airplane.Airline ? {
+              id: flight.Airplane.Airline.id,
+              name: flight.Airplane.Airline.name
+            } : null
+          } : null
+        }))
       });
     } catch (error) {
       console.error(error);
@@ -292,19 +312,69 @@ class FlightController {
 
   async updateFlight(req, res) {
     try {
-      const flight = await flightService.updateFlight(req.params.id, req.body);
-      res.json(flight);
+      console.log('[FlightController] Updating flight:', {
+        id: req.params.id,
+        body: req.body
+      });
+
+      const flight = await Flight.findByPk(req.params.id);
+      if (!flight) {
+        return res.status(404).json({ message: 'Không tìm thấy chuyến bay' });
+      }
+
+      // Update only the fields that are provided in the request
+      await flight.update(req.body);
+      
+      console.log('[FlightController] Flight updated successfully:', {
+        id: flight.id,
+        updatedFields: Object.keys(req.body)
+      });
+
+      res.json({
+        status: 'success',
+        data: flight
+      });
     } catch (error) {
-      res.status(400).json({ message: error.message });
+      console.error('[FlightController] Error updating flight:', error);
+      res.status(400).json({ 
+        status: 'error',
+        message: error.message,
+        errors: error.errors
+      });
     }
   }
 
   async deleteFlight(req, res) {
     try {
-      await flightService.deleteFlight(req.params.id);
-      res.json({ message: 'Flight deleted successfully' });
+      const flight = await Flight.findByPk(req.params.id);
+      
+      if (!flight) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Flight not found'
+        });
+      }
+
+      // Delete associated seats first
+      await Seat.destroy({
+        where: {
+          flight_id: flight.id
+        }
+      });
+
+      // Then delete the flight
+      await flight.destroy();
+
+      res.json({
+        status: 'success',
+        message: 'Flight deleted successfully'
+      });
     } catch (error) {
-      res.status(400).json({ message: error.message });
+      console.error('Error deleting flight:', error);
+      res.status(500).json({
+        status: 'error',
+        message: 'Something went wrong while deleting the flight'
+      });
     }
   }
 }

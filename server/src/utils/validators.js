@@ -1,5 +1,6 @@
 const { body, validationResult } = require('express-validator');
 const { User, Flight, Booking, Post } = require('../models');
+const { Op } = require('sequelize');
 
 // Auth validators
 exports.validateRegister = [
@@ -20,7 +21,6 @@ exports.validateRegister = [
   body('last_name').notEmpty().withMessage('Tên không được bỏ trống'),
   body('date_of_birth').isDate().withMessage('Ngày sinh không hợp lệ'),
   body('country_name').notEmpty().withMessage('Tên quốc gia không được bỏ trống'),
-  body('country_code').isLength({ min: 3, max: 3 }).withMessage('Mã quốc gia phải có 3 ký tự'),
   body('address').notEmpty().withMessage('Địa chỉ không được bỏ trống'),
   (req, res, next) => {
     const errors = validationResult(req);
@@ -63,6 +63,51 @@ exports.validateFlight = [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
+    }
+    next();
+  }
+];
+
+// Flight update validators - allows partial updates
+exports.validateFlightUpdate = [
+  body('flight_number')
+    .optional()
+    .notEmpty()
+    .withMessage('Số hiệu chuyến bay không được bỏ trống'),
+  body('origin')
+    .optional()
+    .notEmpty()
+    .withMessage('Điểm đi không được bỏ trống'),
+  body('destination')
+    .optional()
+    .notEmpty()
+    .withMessage('Điểm đến không được bỏ trống'),
+  body('departure_time')
+    .optional()
+    .isISO8601()
+    .withMessage('Thời gian khởi hành không hợp lệ'),
+  body('arrival_time')
+    .optional()
+    .isISO8601()
+    .withMessage('Thời gian đến không hợp lệ')
+    .custom((value, { req }) => {
+      if (value && req.body.departure_time && new Date(value) <= new Date(req.body.departure_time)) {
+        throw new Error('Thời gian đến phải sau thời gian khởi hành');
+      }
+      return true;
+    }),
+  body('status')
+    .optional()
+    .isIn(['Scheduled', 'Delayed'])
+    .withMessage('Trạng thái không hợp lệ'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Validation failed',
+        errors: errors.array()
+      });
     }
     next();
   }
