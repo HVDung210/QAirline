@@ -1,129 +1,143 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
   Typography,
   Grid,
-  Card,
-  CardContent,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  TextField,
+  CircularProgress,
+  Chip,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
+import { format } from 'date-fns';
+import { adminService } from '../../services/api';
+import { getCityName } from '../../data/cityMapping';
 
 const Bookings = () => {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [filter, setFilter] = useState('all');
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const columns = [
-    { field: 'id', headerName: 'ID', width: 90 },
-    { field: 'bookingNumber', headerName: 'Mã đặt chỗ', width: 150 },
-    { field: 'customerName', headerName: 'Khách hàng', width: 200 },
-    { field: 'flightNumber', headerName: 'Chuyến bay', width: 130 },
-    { field: 'departure', headerName: 'Điểm đi', width: 130 },
-    { field: 'arrival', headerName: 'Điểm đến', width: 130 },
-    { field: 'bookingDate', headerName: 'Ngày đặt', width: 180 },
-    { field: 'status', headerName: 'Trạng thái', width: 130 },
-    { field: 'totalAmount', headerName: 'Tổng tiền', width: 130 },
-  ];
-
-  const rows = [
-    {
-      id: 1,
-      bookingNumber: 'BK001',
-      customerName: 'Nguyễn Văn A',
-      flightNumber: 'QN001',
-      departure: 'Hà Nội',
-      arrival: 'TP.HCM',
-      bookingDate: '2024-03-28',
-      status: 'Đã xác nhận',
-      totalAmount: '2,500,000',
+    { field: 'id', headerName: 'ID', width: 70 },
+    { field: 'booking_reference', headerName: 'Mã đặt chỗ', width: 180 },
+    { field: 'flight_number', headerName: 'Chuyến bay', width: 120 },
+    { field: 'origin', headerName: 'Điểm đi', width: 100 },
+    { field: 'destination', headerName: 'Điểm đến', width: 100 },
+    { field: 'booking_date', headerName: 'Ngày đặt', width: 150 },
+    { 
+      field: 'class', 
+      headerName: 'Hạng vé', 
+      width: 120,
+      renderCell: (params) => {
+        try {
+          const value = params.row.class;
+          if (!value) return 'N/A';
+          return (
+            <Chip 
+              label={value} 
+              color={
+                value === 'First' ? 'error' :
+                value === 'Business' ? 'warning' :
+                'success'
+              }
+              size="small"
+            />
+          );
+        } catch (error) {
+          console.error('Error rendering class:', error);
+          return 'N/A';
+        }
+      }
     },
+    { field: 'total_price', headerName: 'Tổng tiền', width: 150 }
   ];
 
-  const bookingStats = [
-    { name: 'T1', bookings: 4000, revenue: 2400 },
-    { name: 'T2', bookings: 3000, revenue: 1398 },
-    { name: 'T3', bookings: 2000, revenue: 9800 },
-    { name: 'T4', bookings: 2780, revenue: 3908 },
-    { name: 'T5', bookings: 1890, revenue: 4800 },
-    { name: 'T6', bookings: 2390, revenue: 3800 },
-  ];
+  useEffect(() => {
+    fetchBookings();
+  }, [startDate, endDate]);
+
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+      const params = {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString()
+      };
+      
+      const response = await adminService.getBookings(params);
+      
+      if (!response?.data?.bookings) {
+        console.error('Invalid response format');
+        setBookings([]);
+        return;
+      }
+
+      // Log response để debug
+      console.log('API Response:', response.data);
+      console.log('First booking:', response.data.bookings[0]);
+
+      // Đảm bảo dữ liệu có đúng cấu trúc
+      const formattedBookings = response.data.bookings.map(booking => {
+        try {
+          // Format date
+          const bookingDate = booking.booking_date ? format(new Date(booking.booking_date), 'dd/MM/yyyy HH:mm') : 'N/A';
+          
+          // Format price
+          const totalPrice = booking.total_price ? 
+            new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(booking.total_price) : 
+            'N/A';
+
+          return {
+            id: booking.id,
+            booking_reference: booking.booking_reference,
+            flight_number: booking.Flight?.flight_number || 'N/A',
+            origin: getCityName(booking.Flight?.origin) || 'N/A',
+            destination: getCityName(booking.Flight?.destination) || 'N/A',
+            booking_date: bookingDate,
+            class: booking.class || 'N/A',
+            total_price: totalPrice
+          };
+        } catch (error) {
+          console.error('Error formatting booking:', error);
+          return null;
+        }
+      }).filter(Boolean); // Lọc bỏ các booking null
+
+      console.log('First formatted booking:', formattedBookings[0]);
+      setBookings(formattedBookings);
+
+    } catch (error) {
+      console.error('Error fetching bookings:', error.message);
+      setBookings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Quản lý đặt vé
+        Danh sách vé đã đặt
       </Typography>
 
       <Grid container spacing={3}>
-        {/* Thống kê nhanh */}
-        <Grid sx={{ width: { xs: '100%', md: '25%' } }}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Tổng số đặt vé
-              </Typography>
-              <Typography variant="h5">1,234</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid sx={{ width: { xs: '100%', md: '25%' } }}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Đặt vé hôm nay
-              </Typography>
-              <Typography variant="h5">45</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid sx={{ width: { xs: '100%', md: '25%' } }}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Doanh thu tháng
-              </Typography>
-              <Typography variant="h5">$15,000</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid sx={{ width: { xs: '100%', md: '25%' } }}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Tỷ lệ hoàn thành
-              </Typography>
-              <Typography variant="h5">98%</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
         {/* Bộ lọc */}
-        <Grid sx={{ width: '100%' }}>
+        <Grid xs={12}>
           <Paper sx={{ p: 2, mb: 2 }}>
             <Grid container spacing={2} alignItems="center">
-              <Grid sx={{ width: { xs: '100%', md: '33.33%' } }}>
+              <Grid xs={12} md={6}>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                   <DatePicker
                     label="Từ ngày"
@@ -133,7 +147,7 @@ const Bookings = () => {
                   />
                 </LocalizationProvider>
               </Grid>
-              <Grid sx={{ width: { xs: '100%', md: '33.33%' } }}>
+              <Grid xs={12} md={6}>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                   <DatePicker
                     label="Đến ngày"
@@ -143,55 +157,34 @@ const Bookings = () => {
                   />
                 </LocalizationProvider>
               </Grid>
-              <Grid sx={{ width: { xs: '100%', md: '33.33%' } }}>
-                <FormControl fullWidth>
-                  <InputLabel>Trạng thái</InputLabel>
-                  <Select
-                    value={filter}
-                    label="Trạng thái"
-                    onChange={(e) => setFilter(e.target.value)}
-                  >
-                    <MenuItem value="all">Tất cả</MenuItem>
-                    <MenuItem value="confirmed">Đã xác nhận</MenuItem>
-                    <MenuItem value="pending">Đang chờ</MenuItem>
-                    <MenuItem value="cancelled">Đã hủy</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
             </Grid>
           </Paper>
         </Grid>
 
-        {/* Biểu đồ thống kê */}
-        <Grid sx={{ width: { xs: '100%', md: '66.67%' } }}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Thống kê đặt vé
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={bookingStats}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="bookings" fill="#8884d8" name="Số đặt vé" />
-                <Bar dataKey="revenue" fill="#82ca9d" name="Doanh thu" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Paper>
-        </Grid>
-
-        {/* Bảng danh sách đặt vé */}
-        <Grid sx={{ width: '100%' }}>
+        {/* Bảng danh sách vé đã đặt */}
+        <Grid xs={12}>
           <Paper sx={{ height: 400, width: '100%' }}>
             <DataGrid
-              rows={rows}
+              rows={bookings}
               columns={columns}
-              pageSize={5}
-              rowsPerPageOptions={[5]}
-              checkboxSelection
-              disableSelectionOnClick
+              initialState={{
+                pagination: {
+                  paginationModel: { pageSize: 10, page: 0 },
+                },
+              }}
+              pageSizeOptions={[10, 25, 50]}
+              disableRowSelectionOnClick
+              autoHeight
+              getRowId={(row) => row.id}
+              sx={{
+                '& .MuiDataGrid-cell': {
+                  whiteSpace: 'normal',
+                  lineHeight: 'normal',
+                },
+                '& .MuiDataGrid-columnHeaders': {
+                  backgroundColor: '#f5f5f5',
+                },
+              }}
             />
           </Paper>
         </Grid>

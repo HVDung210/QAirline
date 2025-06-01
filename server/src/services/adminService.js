@@ -1,4 +1,4 @@
-const { Admin, User, Customer, Flight, Booking, Post } = require('../models');
+const { Admin, User, Customer, Flight, Booking, Post, Seat, Airplane, Airline } = require('../models');
 const { Op } = require('sequelize');
 
 class AdminService {
@@ -60,27 +60,77 @@ class AdminService {
     };
   }
 
-  async getBookings(page = 1, limit = 10) {
+  async getBookings(page = 1, limit = 10, startDate, endDate, status) {
     const offset = (page - 1) * limit;
+    
+    // Build where clause
+    const whereClause = {};
+    
+    if (startDate && endDate) {
+      whereClause.booking_date = {
+        [Op.between]: [new Date(startDate), new Date(endDate)]
+      };
+    }
+    
+    if (status) {
+      whereClause.status = status;
+    }
+
     const bookings = await Booking.findAndCountAll({
+      where: whereClause,
       include: [{
         model: Flight,
         include: [{
           model: Seat
+        }, {
+          model: Airplane,
+          include: [Airline]
         }]
       }, {
         model: Customer
       }],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['created_at', 'DESC']]
+      order: [['booking_date', 'DESC']]
+    });
+
+    // Calculate statistics
+    const totalBookings = bookings.count;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todayBookings = await Booking.count({
+      where: {
+        booking_date: {
+          [Op.between]: [today, tomorrow]
+        }
+      }
+    });
+
+    const monthlyRevenue = await Booking.sum('total_price', {
+      where: {
+        booking_date: {
+          [Op.between]: [
+            new Date(today.getFullYear(), today.getMonth(), 1),
+            new Date(today.getFullYear(), today.getMonth() + 1, 0)
+          ]
+        }
+      }
     });
 
     return {
       total: bookings.count,
       pages: Math.ceil(bookings.count / limit),
       currentPage: parseInt(page),
-      bookings: bookings.rows
+      bookings: bookings.rows,
+      statistics: {
+        totalBookings,
+        todayBookings,
+        monthlyRevenue: monthlyRevenue || 0,
+        completionRate: 100 // Since we only show confirmed bookings
+      }
     };
   }
 

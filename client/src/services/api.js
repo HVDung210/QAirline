@@ -386,8 +386,14 @@ export const adminService = {
   // Bookings
   getBookings: async () => {
     console.log('[adminService] Calling getBookings API');
-    const response = await api.get('/bookings');
-    return response;
+    try {
+      const response = await api.get('/admin/bookings');
+      console.log('[adminService] Bookings response:', response);
+      return response;
+    } catch (error) {
+      console.error('[adminService] Error fetching bookings:', error);
+      throw error;
+    }
   },
   getBookingDetails: async (id) => {
     console.log('[adminService] Calling getBookingDetails API for id:', id);

@@ -1,5 +1,6 @@
 const { Booking, Flight, Seat, Customer, Airplane, Airline } = require('../models');
 const sequelize = require('../config/database');
+const { Op } = require('sequelize');
 
 exports.createBooking = async (req, res) => {
   const t = await sequelize.transaction();
@@ -166,7 +167,23 @@ exports.getUserBookings = async (req, res) => {
 
 exports.getAllBookings = async (req, res) => {
   try {
+    const { startDate, endDate, status } = req.query;
+    
+    // Build where clause
+    const whereClause = {};
+    
+    if (startDate && endDate) {
+      whereClause.booking_date = {
+        [Op.between]: [new Date(startDate), new Date(endDate)]
+      };
+    }
+    
+    if (status) {
+      whereClause.status = status;
+    }
+
     const bookings = await Booking.findAll({
+      where: whereClause,
       include: [
         {
           model: Flight,
@@ -183,7 +200,8 @@ exports.getAllBookings = async (req, res) => {
         {
           model: Customer
         }
-      ]
+      ],
+      order: [['booking_date', 'DESC']]
     });
 
     res.json({

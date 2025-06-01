@@ -32,8 +32,8 @@ class AdminController {
 
   async getBookings(req, res) {
     try {
-      const { page, limit } = req.query;
-      const bookings = await adminService.getBookings(page, limit);
+      const { page, limit, startDate, endDate, status } = req.query;
+      const bookings = await adminService.getBookings(page, limit, startDate, endDate, status);
       res.json(bookings);
     } catch (error) {
       res.status(500).json({ message: error.message });

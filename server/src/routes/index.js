@@ -6,6 +6,7 @@ const airplaneRoutes = require('./airplanes');
 const postRoutes = require('./posts');
 const bookingRoutes = require('./bookings');
 const customerRoutes = require('./customer');
+const adminRoutes = require('./admin');
 const customerController = require('../controllers/customerController');
 const airplaneController = require('../controllers/airplaneController');
 
@@ -16,6 +17,7 @@ router.use('/airplanes', airplaneRoutes);
 router.use('/posts', postRoutes);
 router.use('/bookings', bookingRoutes);
 router.use('/customers', customerRoutes);
+router.use('/admin', adminRoutes);
 
 // Customer routes
 router.get('/customers', (req, res) => customerController.getAllCustomers(req, res));
