@@ -29,8 +29,7 @@ const Airplane = sequelize.define('Airplane', {
     }
   }
 }, {
-  timestamps: true, // This will add created_at and updated_at columns
-  underscored: true // This will use snake_case for column names
+  timestamps: true // This will use createdAt and updatedAt
 });
 
 // Define association
