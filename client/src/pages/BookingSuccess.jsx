@@ -298,10 +298,6 @@ const BookingSuccess = () => {
                         {formatDateTime(booking.Flight?.arrival_time)}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Ghế</p>
-                      <p className="font-medium text-blue-600">{booking.seat_number}</p>
-                    </div>
                   </div>
                 </div>
 
@@ -331,10 +327,6 @@ const BookingSuccess = () => {
                         <p className="font-medium">
                           {formatDateTime(booking.return_flight?.arrival_time)}
                         </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Ghế</p>
-                        <p className="font-medium text-green-600">{booking.return_seat_number}</p>
                       </div>
                     </div>
                   </div>
