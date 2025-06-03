@@ -112,7 +112,7 @@ const DashboardLayout = ({ children }) => {
       path: '/admin/airplanes'
     },
     {
-      text: 'Đặt chỗ',
+      text: 'Đặt vé',
       icon: <ConfirmationNumberIcon />,
       path: '/admin/bookings'
     },

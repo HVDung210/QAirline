@@ -23,7 +23,7 @@ const Bookings = () => {
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'booking_reference', headerName: 'Mã đặt chỗ', width: 180 },
+    { field: 'booking_reference', headerName: 'Mã đặt vé', width: 180 },
     { field: 'flight_number', headerName: 'Chuyến bay', width: 120 },
     { field: 'origin', headerName: 'Điểm đi', width: 100 },
     { field: 'destination', headerName: 'Điểm đến', width: 100 },

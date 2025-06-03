@@ -481,7 +481,7 @@ const MyBookings = () => {
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Đặt chỗ của tôi</h1>
+        <h1 className="text-3xl font-bold mb-8">Đặt vé của tôi</h1>
         
         {error && (
           <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
@@ -507,7 +507,7 @@ const MyBookings = () => {
           </div>
         ) : bookings.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-600">Bạn chưa có đặt chỗ nào.</p>
+            <p className="text-gray-600">Bạn chưa có đặt vé nào.</p>
           </div>
         ) : (
           <div className="space-y-8">
@@ -597,10 +597,7 @@ const MyBookings = () => {
                 <div className="border-t border-gray-200 mt-6 pt-6">
                   <h3 className="font-semibold mb-4">Thông tin thanh toán</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Phương thức thanh toán</p>
-                      <p className="font-medium">{booking.payment_method}</p>
-                    </div>
+                    
                     <div>
                       <p className="text-sm text-gray-600">Trạng thái</p>
                       <p className="font-medium text-green-600">Đã thanh toán</p>
@@ -618,7 +615,7 @@ const MyBookings = () => {
                       onClick={() => handleCancelBooking(booking.id, booking.Flight?.departure_time)}
                       className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
                     >
-                      Hủy đặt chỗ
+                      Hủy đặt vé
                     </button>
                   </div>
                 )}

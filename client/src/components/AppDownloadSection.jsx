@@ -2,8 +2,8 @@ import React from 'react';
 
 const AppDownloadSection = () => {
   return (
-    <div className="bg-blue-600 text-white py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12">
+    <div className="bg-blue-600 text-white py-16">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-12 w-full px-4 sm:px-6 lg:px-8">
         {/* Left Section: Text and Download Links */}
         <div className="md:w-1/2 text-center md:text-left">
           <h2 className="text-4xl font-bold mb-6">Flight Booking App</h2>

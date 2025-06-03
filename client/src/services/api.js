@@ -407,9 +407,9 @@ export const adminService = {
   },
 
   // Posts
-  getPosts: async () => {
-    console.log('[adminService] Getting posts with token:', localStorage.getItem('token'));
-    const response = await api.get('/posts');
+  getPosts: async (params) => {
+    console.log('[adminService] Getting posts with token:', localStorage.getItem('token'), 'and params:', params);
+    const response = await api.get('/posts', { params });
     return response.data;
   },
 

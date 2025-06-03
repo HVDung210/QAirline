@@ -32,14 +32,14 @@ const Dashboard = () => {
   ];
 
   return (
-    <Box>
+    <Box sx={{ flexGrow: 1, p: 3 }}>
       <Typography variant="h4" gutterBottom>
         Dashboard
       </Typography>
       
-      <Grid container spacing={3}>
-        {/* Thống kê nhanh */}
-        <Grid sx={{ width: { xs: '100%', md: '25%' } }}>
+      {/* Thống kê nhanh */}
+      <Grid container spacing={3} mb={3}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
@@ -50,18 +50,18 @@ const Dashboard = () => {
           </Card>
         </Grid>
         
-        <Grid sx={{ width: { xs: '100%', md: '25%' } }}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Đặt chỗ hôm nay
+                Đặt vé hôm nay
               </Typography>
               <Typography variant="h5">45</Typography>
             </CardContent>
           </Card>
         </Grid>
         
-        <Grid sx={{ width: { xs: '100%', md: '25%' } }}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
@@ -72,7 +72,7 @@ const Dashboard = () => {
           </Card>
         </Grid>
         
-        <Grid sx={{ width: { xs: '100%', md: '25%' } }}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
@@ -82,12 +82,15 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </Grid>
+      </Grid>
 
+      {/* Biểu đồ */}
+      <Grid container spacing={3}>
         {/* Biểu đồ đặt chỗ */}
-        <Grid sx={{ width: { xs: '100%', md: '66.67%' } }}>
+        <Grid item xs={12} md={12}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
-              Thống kê đặt chỗ
+              Thống kê đặt vé
             </Typography>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={bookingData}>
@@ -96,7 +99,7 @@ const Dashboard = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="bookings" fill="#8884d8" name="Số đặt chỗ" />
+                <Bar dataKey="bookings" fill="#8884d8" name="Số đặt vé" />
                 <Bar dataKey="revenue" fill="#82ca9d" name="Doanh thu" />
               </BarChart>
             </ResponsiveContainer>
@@ -104,7 +107,7 @@ const Dashboard = () => {
         </Grid>
 
         {/* Biểu đồ doanh thu */}
-        <Grid sx={{ width: { xs: '100%', md: '33.33%' } }}>
+        <Grid item xs={12} md={12}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               Doanh thu theo thời gian

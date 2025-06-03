@@ -335,10 +335,7 @@ const BookingSuccess = () => {
                 {/* Thông tin thanh toán */}
                 <div className="mt-6 pt-6 border-t">
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Phương thức thanh toán</p>
-                      <p className="font-medium">{booking.payment_method || 'N/A'}</p>
-                    </div>
+                    
                     <div>
                       <p className="text-sm text-gray-600">Trạng thái</p>
                       <p className="font-medium">

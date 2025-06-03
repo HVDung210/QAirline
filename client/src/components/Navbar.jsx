@@ -116,7 +116,7 @@ const Navbar = () => {
                     to="/bookings/my-bookings"
                     className="border-transparent text-gray-500 hover:border-blue-500 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
                   >
-                    Đặt chỗ của tôi
+                    Đặt vé của tôi
                   </Link>
                 )}
               </div>
