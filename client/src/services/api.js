@@ -175,6 +175,12 @@ export const authService = {
       }
       throw error;
     }
+  },
+
+  getCustomerInfo: async (userId) => {
+    console.log('[authService] Getting customer info for user:', userId);
+    const response = await api.get(`/customers/${userId}`);
+    return response.data;
   }
 };
 

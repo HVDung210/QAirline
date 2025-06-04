@@ -209,9 +209,6 @@ export const AuthProvider = ({ children }) => {
         timestamp: new Date().toISOString()
       });
 
-      // Hiển thị thông báo thành công
-      toast.success('Đăng xuất thành công');
-
       // Kiểm tra và chuyển hướng nếu đang ở trang admin
       const isAdminPage = window.location.pathname.startsWith('/admin');
       console.log('[AuthContext] Checking redirection:', {
@@ -247,8 +244,6 @@ export const AuthProvider = ({ children }) => {
       // Vẫn xóa session local nếu có lỗi
       console.log('[AuthContext] Clearing session due to error');
       clearSession();
-      
-      toast.error('Có lỗi xảy ra khi đăng xuất');
       
       return {
         success: false,

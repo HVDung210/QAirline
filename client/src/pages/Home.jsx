@@ -93,7 +93,7 @@ const Home = () => {
                 <div className="flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-6 mx-auto text-purple-600"> {/* Changed icon color for more variety */}
                   <i className="fas fa-calendar-check text-2xl"></i>
                 </div>
-                <h3 className="text-2xl font-semibold text-gray-800 mb-3">Quản lý đặt chỗ</h3>
+                <h3 className="text-2xl font-semibold text-gray-800 mb-3">Quản lý đặt vé</h3>
                 <p className="text-gray-600">
                   Theo dõi, thay đổi hoặc hủy đặt vé của bạn một cách thuận tiện.
                 </p>

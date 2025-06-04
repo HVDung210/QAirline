@@ -9,6 +9,7 @@ import FlightSearchResults from './pages/FlightSearchResults';
 import BookingForm from './components/BookingForm';
 import MyBookings from './pages/MyBookings';
 import BookingSuccess from './pages/BookingSuccess';
+import Profile from './pages/Profile';
 
 // Admin components
 import DashboardLayout from './layouts/admin/DashboardLayout';
@@ -31,6 +32,14 @@ const AppRoutes = () => {
           <Route path="/flights/search-results" element={<FlightSearchResults />} />
           
           {/* Protected Routes */}
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>
+            }
+          />
           <Route
             path="/booking/:flightId"
             element={

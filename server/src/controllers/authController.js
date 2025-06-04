@@ -40,17 +40,16 @@ class AuthController {
       });
 
       // Create customer profile
-      await Customer.create({
+      const customer = await Customer.create({
         user_id: user.id,
-        first_name,
-        last_name,
-        address,
-        country_name,
-        country_code,
-        date_of_birth,
-        gender,
-        title: 'Mr',
-        middle_name: ''
+        first_name: req.body.first_name,
+        middle_name: req.body.middle_name,
+        last_name: req.body.last_name,
+        date_of_birth: req.body.date_of_birth,
+        gender: req.body.gender,
+        address: req.body.address,
+        country_name: req.body.country_name,
+        country_code: req.body.country_code
       });
 
       res.status(201).json({

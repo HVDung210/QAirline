@@ -33,10 +33,6 @@ const Customer = sequelize.define('Customer', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  title: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
   middle_name: {
     type: DataTypes.STRING,
     allowNull: false
