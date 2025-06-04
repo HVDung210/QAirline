@@ -64,4 +64,12 @@
     --ring: 212.7 26.8% 83.9%;
   }
 }
- 
+
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  animation: marquee 16s linear infinite; /* Adjust time as needed */
+}

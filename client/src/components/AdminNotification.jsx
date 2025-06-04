@@ -1,62 +1,83 @@
 import React, { useState, useEffect } from 'react';
-import { adminService } from '../services/api'; // Import adminService
+import { adminService } from '../services/api';
+import { IconButton } from '@mui/material';
+import { ArrowBack, ArrowForward } from '@mui/icons-material';
 
 const AdminNotification = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const itemsPerPage = 1;
 
   useEffect(() => {
-    const fetchAnnouncements = async () => {
+    const fetchPosts = async () => {
       try {
         setLoading(true);
-        // Fetch posts of type 'announcement', potentially add limit/order here if needed
-        const data = await adminService.getPosts({ type: 'announcement', limit: 10, order: [['createdAt', 'DESC']] }); 
+        const data = await adminService.getPosts({ order: [['createdAt', 'DESC']] });
         if (data && Array.isArray(data.posts)) {
           setAnnouncements(data.posts);
         } else {
-          setAnnouncements([]); // Set empty array if response format is unexpected
+          setAnnouncements([]);
         }
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching admin announcements:', err);
-        setError('Không thể tải thông báo admin.');
+        console.error('Error fetching posts:', err);
+        setError('Không thể tải bài viết.');
         setLoading(false);
       }
     };
 
-    fetchAnnouncements();
-  }, []); // Empty dependency array means this effect runs once on mount
+    fetchPosts();
+  }, []);
+
+  const goToPrevious = () => {
+    setCurrentIndex(prevIndex => (
+      prevIndex === 0 ? announcements.length - 1 : prevIndex - 1
+    ));
+  };
+
+  const goToNext = () => {
+    setCurrentIndex(prevIndex => (
+      prevIndex === announcements.length - 1 ? 0 : prevIndex + 1
+    ));
+  };
 
   if (loading) {
-    return <div className="text-center py-8 text-white">Đang tải thông báo...</div>;
+    return <div className="text-center py-2 text-gray-700">Đang tải bài viết...</div>;
   }
 
   if (error) {
-    return <div className="text-center py-8 text-red-300">{error}</div>;
+    return <div className="text-center py-2 text-red-500">{error}</div>;
   }
 
   if (announcements.length === 0) {
-    return null; // Don't render anything if there are no announcements
+    return null;
   }
 
+  const currentPost = announcements[currentIndex];
+
+  const currentMarqueeText = currentPost ? 
+    `${currentPost.post_type.charAt(0).toUpperCase() + currentPost.post_type.slice(1)}: ${currentPost.title} ${currentPost.content ? `- ${currentPost.content}` : ''}`
+    : '';
+
   return (
-    <div className="relative bg-cover bg-center py-8 text-white text-center" style={{ backgroundImage: "url('/src/assets/notification-background.jpg')" }}> {/* Use your actual image file name */}
-      {/* Optional: Overlay for better text readability */}
-      <div className="absolute inset-0 bg-black opacity-40"></div>
+    <div className="bg-blue-100 py-2 text-gray-700 text-center flex items-center justify-between relative z-0">
+      <IconButton onClick={goToPrevious} style={{ color: 'gray' }}>
+        <ArrowBack />
+      </IconButton>
       
-      {/* Content - Horizontal Scrollable */}
-      <div className="relative z-10 flex overflow-x-auto snap-x snap-mandatory pb-4 scrollbar-hide"> {/* Added flex, overflow-x-auto, snap classes, and pb for scrollbar space */}
-        {announcements.map((announcement) => (
-          <div key={announcement.id} className="flex-shrink-0 w-full snap-center px-4"> {/* Added flex-shrink-0, w-full, snap-center, and horizontal padding */}
-            <h3 className="text-xl font-semibold mb-2">{announcement.title}</h3> {/* Adjusted margin */}
-            <p className="text-base">{announcement.content}</p>
-          </div>
-        ))}
-        {/* Add more content here as needed */}
+      <div className="flex-grow mx-2 overflow-hidden whitespace-nowrap flex items-center">
+         <div key={currentIndex} className="inline-block animate-marquee px-4 min-w-full">
+           {currentMarqueeText}
+         </div>
       </div>
+      
+      <IconButton onClick={goToNext} style={{ color: 'gray' }}>
+        <ArrowForward />
+      </IconButton>
     </div>
   );
 };
 
-export default AdminNotification; 
+export default AdminNotification;
