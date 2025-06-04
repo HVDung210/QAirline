@@ -95,9 +95,13 @@ const Airplanes = () => {
         <DataGrid
           rows={airplanes}
           columns={columns}
-          pageSize={5}
-          rowsPerPageOptions={[5]}
-          disableSelectionOnClick
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: 5, page: 0 },
+            },
+          }}
+          pageSizeOptions={[5]}
+          disableRowSelectionOnClick
           loading={loading}
         />
       </Paper>
@@ -106,7 +110,7 @@ const Airplanes = () => {
         <DialogTitle>Thêm máy bay mới</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <TextField
                 fullWidth
                 label="Model"
@@ -116,7 +120,7 @@ const Airplanes = () => {
                 required
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <TextField
                 fullWidth
                 label="Hãng sản xuất"
@@ -126,7 +130,7 @@ const Airplanes = () => {
                 required
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <TextField
                 fullWidth
                 label="Số ghế"

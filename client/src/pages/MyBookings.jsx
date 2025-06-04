@@ -510,9 +510,9 @@ const MyBookings = () => {
             <p className="text-gray-600">Bạn chưa có đặt vé nào.</p>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {groupReturnFlights(bookings).map((booking) => (
-              <div key={booking.ticket_number} className="bg-white shadow rounded-lg p-8">
+              <div key={booking.id} className="bg-white rounded-lg shadow p-4">
                 <div className="flex justify-between items-start mb-6">
                   <div>
                     <h2 className="text-xl font-semibold mb-2">

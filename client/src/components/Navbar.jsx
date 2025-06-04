@@ -145,7 +145,7 @@ const Navbar = () => {
                       vertical: 'top',
                       horizontal: 'right',
                     }}
-                    open={menuOpen}
+                    open={Boolean(anchorEl)}
                     onClose={handleClose}
                   >
                     <MenuItem onClick={handleProfile}>

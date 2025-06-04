@@ -213,7 +213,7 @@ const BookingForm = () => {
           
           <div className="mb-6">
             <h2 className="text-lg font-semibold mb-2">Thông tin chuyến bay</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-600">Hành trình</p>
                 <p className="font-medium">{flight.origin} → {flight.destination}</p>

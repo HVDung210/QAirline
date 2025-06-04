@@ -39,7 +39,7 @@ const Dashboard = () => {
       
       {/* Thống kê nhanh */}
       <Grid container spacing={3} mb={3}>
-        <Grid item xs={12} md={3}>
+        <Grid xs={12} md={3}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
@@ -50,7 +50,7 @@ const Dashboard = () => {
           </Card>
         </Grid>
         
-        <Grid item xs={12} md={3}>
+        <Grid xs={12} md={3}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
@@ -61,7 +61,7 @@ const Dashboard = () => {
           </Card>
         </Grid>
         
-        <Grid item xs={12} md={3}>
+        <Grid xs={12} md={3}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
@@ -72,7 +72,7 @@ const Dashboard = () => {
           </Card>
         </Grid>
         
-        <Grid item xs={12} md={3}>
+        <Grid xs={12} md={3}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
@@ -87,7 +87,7 @@ const Dashboard = () => {
       {/* Biểu đồ */}
       <Grid container spacing={3}>
         {/* Biểu đồ đặt chỗ */}
-        <Grid item xs={12} md={12}>
+        <Grid xs={12}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               Thống kê đặt vé
@@ -107,7 +107,7 @@ const Dashboard = () => {
         </Grid>
 
         {/* Biểu đồ doanh thu */}
-        <Grid item xs={12} md={12}>
+        <Grid xs={12}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               Doanh thu theo thời gian
