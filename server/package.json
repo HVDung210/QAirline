@@ -10,8 +10,7 @@
     "seed": "npx sequelize-cli db:seed:all",
     "seed:undo": "npx sequelize-cli db:seed:undo:all",
     "seed:undo:last": "npx sequelize-cli db:seed:undo",
-    "backup": "mkdir -p backup && cp database.sqlite backup/database_backup_$(date +%Y%m%d).sqlite",
-    "backup:sql": "mkdir -p backup && sqlite3 database.sqlite .dump > backup/database_backup_$(date +%Y%m%d).sql"
+    "backup:sql": "mkdir backup && sqlite3 database.sqlite .dump > backup/database_backup.sql"
   },
   "keywords": [],
   "author": "",

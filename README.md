@@ -1,28 +1,27 @@
-# QAirline - Flight Booking System
+# QAirline - Hệ Thống Đặt Vé Máy Bay
+Đây là dự án QAirline cho môn học INT3306 - Phát triển Ứng dụng Web. QAirline là một ứng dụng web hiện đại cho việc đặt vé và quản lý chuyến bay, được xây dựng bằng React và Node.js.
 
-QAirline is a modern web application for flight booking and management, built with React and Node.js.
+## Tính Năng
 
-## Features
+### Tính Năng Cho Khách Hàng
+- Xác thực người dùng (đăng nhập/đăng ký)
+- Tìm kiếm và đặt vé máy bay
+- Chọn chỗ ngồi
+- Quản lý đặt vé
+- Quản lý hồ sơ người dùng
+- Lịch sử chuyến bay
+- Xác nhận đặt vé và thông báo
 
-### Customer Features
-- User authentication (login/register)
-- Flight search and booking
-- Seat selection
-- Booking management
-- User profile management
-- Flight history
-- Booking confirmation and notifications
+### Tính Năng Cho Quản Trị Viên
+- Bảng điều khiển với thống kê
+- Quản lý chuyến bay
+- Quản lý máy bay
+- Quản lý đặt vé
+- Quản lý bài viết
+- Quản lý người dùng
+- Thông báo thời gian thực
 
-### Admin Features
-- Admin dashboard with statistics
-- Flight management
-- Airplane management
-- Booking management
-- Post management
-- User management
-- Real-time notifications
-
-## Tech Stack
+## Công Nghệ Sử Dụng
 
 ### Frontend
 - React 19.1.0
@@ -39,129 +38,119 @@ QAirline is a modern web application for flight booking and management, built wi
 - Express.js
 - Sequelize ORM
 - SQLite3
-- JWT Authentication
+- Xác thực JWT
 - Bcrypt
 - Express Validator
 
-## Project Structure
+## Cấu Trúc Dự Án
 
 ```
 qairline/
-├── client/                 # Frontend React application
+├── client/                 # Ứng dụng React Frontend
 │   ├── src/
-│   │   ├── pages/         # Page components
-│   │   ├── components/    # Reusable components
-│   │   ├── services/      # API services
+│   │   ├── pages/         # Các component trang
+│   │   ├── components/    # Các component tái sử dụng
+│   │   ├── services/      # Các service API
 │   │   ├── contexts/      # React contexts
-│   │   ├── layouts/       # Layout components
+│   │   ├── layouts/       # Các component layout
 │   │   ├── hooks/         # Custom hooks
-│   │   ├── utils/         # Utility functions
-│   │   └── assets/        # Static assets
-│   └── public/            # Public assets
+│   │   ├── utils/         # Các hàm tiện ích
+│   │   └── assets/        # Tài nguyên tĩnh
+│   └── public/            # Tài nguyên công khai
 │
-└── server/                # Backend Node.js application
+└── server/                # Ứng dụng Node.js Backend
     ├── src/
-    │   ├── controllers/   # Route controllers
-    │   ├── models/        # Database models
-    │   ├── routes/        # API routes
-    │   ├── middleware/    # Custom middleware
-    │   ├── utils/         # Utility functions
-    │   └── config/        # Configuration files
-    └── public/            # Public assets
+    │   ├── controllers/   # Các controller route
+    │   ├── models/        # Các model database
+    │   ├── routes/        # Các route API
+    │   ├── middleware/    # Middleware tùy chỉnh
+    │   ├── utils/         # Các hàm tiện ích
+    │   └── config/        # Các file cấu hình
+    └── public/            # Tài nguyên công khai
 ```
 
-## Getting Started
+## Bắt Đầu
 
-### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
+### Yêu Cầu
+- Node.js (v14 trở lên)
+- npm hoặc yarn
 
-### Installation
+### Cài Đặt
 
-1. Clone the repository:
+1. Clone repository:
 ```bash
 git clone https://github.com/yourusername/qairline.git
 cd qairline
 ```
 
-2. Install dependencies:
+2. Cài đặt dependencies:
 ```bash
-# Install server dependencies
+# Cài đặt dependencies cho server
 cd server
 npm install
 
-# Install client dependencies
+# Cài đặt dependencies cho client
 cd ../client
 npm install
 ```
 
-3. Set up environment variables:
+3. Thiết lập biến môi trường:
 ```bash
-# In server directory
+# Trong thư mục server
 cp .env.example .env
-# Edit .env with your configuration
+# Chỉnh sửa .env với cấu hình của bạn
 ```
 
-4. Initialize the database:
+4. Khởi tạo database:
 ```bash
-# In server directory
+# Trong thư mục server
 npx sequelize-cli db:migrate
 npx sequelize-cli db:seed:all
 ```
 
-5. Start the development servers:
+5. Khởi động server phát triển:
 ```bash
-# Start backend server (from server directory)
+# Khởi động server backend (từ thư mục server)
 npm start
 
-# Start frontend server (from client directory)
+# Khởi động server frontend (từ thư mục client)
 npm run dev
 ```
 
-The application will be available at:
+Ứng dụng sẽ có sẵn tại:
 - Frontend: http://localhost:5173
 - Backend: http://localhost:3000
 
-## API Documentation
+## Tài Liệu API
 
-### Authentication
-- POST /api/auth/register - Register new user
-- POST /api/auth/login - User login
-- POST /api/auth/admin/login - Admin login
+### Xác Thực
+- POST /api/auth/register - Đăng ký người dùng mới
+- POST /api/auth/login - Đăng nhập người dùng
+- POST /api/auth/admin/login - Đăng nhập quản trị viên
 
-### Flights
-- GET /api/flights - Get all flights
-- GET /api/flights/search - Search flights
-- GET /api/flights/:id - Get flight details
-- POST /api/flights - Create new flight (admin)
-- PUT /api/flights/:id - Update flight (admin)
-- DELETE /api/flights/:id - Delete flight (admin)
+### Chuyến Bay
+- GET /api/flights - Lấy tất cả chuyến bay
+- GET /api/flights/search - Tìm kiếm chuyến bay
+- GET /api/flights/:id - Lấy chi tiết chuyến bay
+- POST /api/flights - Tạo chuyến bay mới (admin)
+- PUT /api/flights/:id - Cập nhật chuyến bay (admin)
+- DELETE /api/flights/:id - Xóa chuyến bay (admin)
 
-### Bookings
-- GET /api/bookings - Get user bookings
-- POST /api/bookings - Create new booking
-- GET /api/bookings/:id - Get booking details
-- PUT /api/bookings/:id - Update booking
-- DELETE /api/bookings/:id - Cancel booking
+### Đặt Vé
+- GET /api/bookings - Lấy danh sách đặt vé của người dùng
+- POST /api/bookings - Tạo đặt vé mới
+- GET /api/bookings/:id - Lấy chi tiết đặt vé
+- PUT /api/bookings/:id - Cập nhật đặt vé
+- DELETE /api/bookings/:id - Hủy đặt vé
 
-### Admin Routes
-- GET /api/admin/dashboard - Get dashboard statistics
-- GET /api/admin/bookings - Get all bookings
-- GET /api/admin/airplanes - Get all airplanes
-- POST /api/admin/airplanes - Add new airplane
-- GET /api/admin/posts - Get all posts
-- POST /api/admin/posts - Create new post
+### Route Quản Trị
+- GET /api/admin/dashboard - Lấy thống kê bảng điều khiển
+- GET /api/admin/bookings - Lấy tất cả đặt vé
+- GET /api/admin/airplanes - Lấy tất cả máy bay
+- POST /api/admin/airplanes - Thêm máy bay mới
+- GET /api/admin/posts - Lấy tất cả bài viết
+- POST /api/admin/posts - Tạo bài viết mới
 
-## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the ISC License.
 
 
