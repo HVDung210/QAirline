@@ -1,6 +1,12 @@
 # QAirline - Hệ Thống Đặt Vé Máy Bay
 Đây là dự án QAirline cho môn học INT3306 - Phát triển Ứng dụng Web. QAirline là một ứng dụng web hiện đại cho việc đặt vé và quản lý chuyến bay, được xây dựng bằng React và Node.js.
 
+## Giao Diện
+
+### Trang Chủ
+![Trang Chủ](client/src/assets/home.png)
+
+
 ## Tính Năng
 
 ### Tính Năng Cho Khách Hàng
@@ -93,22 +99,9 @@ npm install
 cd ../client
 npm install
 ```
-
-3. Thiết lập biến môi trường:
-```bash
-# Trong thư mục server
-cp .env.example .env
-# Chỉnh sửa .env với cấu hình của bạn
 ```
 
-4. Khởi tạo database:
-```bash
-# Trong thư mục server
-npx sequelize-cli db:migrate
-npx sequelize-cli db:seed:all
-```
-
-5. Khởi động server phát triển:
+3. Khởi động server phát triển:
 ```bash
 # Khởi động server backend (từ thư mục server)
 npm start
@@ -150,6 +143,8 @@ npm run dev
 - POST /api/admin/airplanes - Thêm máy bay mới
 - GET /api/admin/posts - Lấy tất cả bài viết
 - POST /api/admin/posts - Tạo bài viết mới
+
+
 
 
 

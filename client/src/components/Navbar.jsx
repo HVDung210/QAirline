@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Avatar, Menu, MenuItem, IconButton } from '@mui/material';
 import { AccountCircle, Logout, Person } from '@mui/icons-material';
 import { toast } from 'react-toastify';
-import logo from '../assets/logo.png';
+import logo from '../assets/appstore.png';
 import avatar from '../assets/avatar.png';
 
 const Navbar = () => {
