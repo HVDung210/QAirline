@@ -114,38 +114,6 @@ npm run dev
 - Frontend: http://localhost:5173
 - Backend: http://localhost:3000
 
-## Tài Liệu API
-
-### Xác Thực
-- POST /api/auth/register - Đăng ký người dùng mới
-- POST /api/auth/login - Đăng nhập người dùng
-- POST /api/auth/admin/login - Đăng nhập quản trị viên
-
-### Chuyến Bay
-- GET /api/flights - Lấy tất cả chuyến bay
-- GET /api/flights/search - Tìm kiếm chuyến bay
-- GET /api/flights/:id - Lấy chi tiết chuyến bay
-- POST /api/flights - Tạo chuyến bay mới (admin)
-- PUT /api/flights/:id - Cập nhật chuyến bay (admin)
-- DELETE /api/flights/:id - Xóa chuyến bay (admin)
-
-### Đặt Vé
-- GET /api/bookings - Lấy danh sách đặt vé của người dùng
-- POST /api/bookings - Tạo đặt vé mới
-- GET /api/bookings/:id - Lấy chi tiết đặt vé
-- PUT /api/bookings/:id - Cập nhật đặt vé
-- DELETE /api/bookings/:id - Hủy đặt vé
-
-### Route Quản Trị
-- GET /api/admin/dashboard - Lấy thống kê bảng điều khiển
-- GET /api/admin/bookings - Lấy tất cả đặt vé
-- GET /api/admin/airplanes - Lấy tất cả máy bay
-- POST /api/admin/airplanes - Thêm máy bay mới
-- GET /api/admin/posts - Lấy tất cả bài viết
-- POST /api/admin/posts - Tạo bài viết mới
-
-
-
 
 
 
